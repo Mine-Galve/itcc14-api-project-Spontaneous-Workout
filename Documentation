@@ -1,0 +1,263 @@
+Spontaneity Fit Navigation
+
+
+Site: Xavier University 
+Course: ITCC14-API-PROJECT - Building a RESTful API
+Book: Spontaneity Fit: Backend API Lecture
+
+
+Printed by:Mine GalveDate:Sunday, 16 November 2025, 10:54 PM
+
+
+
+
+
+
+
+
+Table of contents:
+Introduction to Backend APIs
+Project Overview: Spontaneity Fit
+Exercise: Project Setup (VSCode & Node.js)
+Exercise: Connecting to a Local Database (MongoDB)
+Exercise: Creating the Data Model (Mongoose)
+Exercise: Seeding the Database
+Building the Core API
+Exercise: Implementing the API Endpoint
+Exercise: Pushing to GitHub
+Introduction to Deployment (Local vs. Cloud)
+Exercise: Migrating to a Cloud Database (MongoDB Atlas)
+Exercise: Deploying to Render
+Summary of Your Live API
+
+
+
+
+
+Introduction to Backend APIs
+An API (Application Programming Interface) is the "backend" of an application. It has no visual design or user interface (UI).
+Think of a frontend (a website or mobile app) as the body of a car—the steering wheel, seats, and paint job. The backend API is the engine. It does all the work in the background:
+Handles business logic.
+Connects to the database.
+"Serves" data (in JSON format) to the frontend when asked.
+In this project, you will build the "engine" for a workout app.
+2. Project Overview: Spontaneity Fit
+You're going to create the API for Spontaneity Fit, an instant workout generator.
+The problem it solves is workout monotony and decision fatigue. Users often don't know what to do at the gym.
+The solution is a "headless" API that accepts a user's desired focus (e.g., legs, push) and available equipment (e.g., bodyweight, dumbbells_only) as parameters. In response, it instantly generates a simple, effective workout routine, served as a clean JSON object.
+We will build this using the following technology:
+Runtime: Node.js
+Framework: Express.js
+Database: MongoDB with Mongoose
+Deployment: Render.com
+
+
+
+ Project Setup (VSCode & Node.js)
+Exercise: Project Setup (VSCode & Node.js)
+First, we will set up the project folder and all the necessary files.
+Create Your Project Folder On your computer (e.g., on your Desktop), create a new folder named SpontaneityFit-API.
+Open in VSCode Open VSCode, go to File > Open Folder..., and select your new SpontaneityFit-API folder.
+Initialize Node.js & Install Dependencies Open the VSCode terminal (Terminal > New Terminal). We will run two commands:
+** First, this command initializes your project by creating a package.json file:
+Bash
+npm init -y
+** Second, this command installs all the code libraries (dependencies) we need:
+Bash
+npm install express mongoose dotenv
+Create Your Project Files In the VSCode file explorer, create this exact folder structure and file list:
+Create a folder named models.
+Inside models, create a new file: Exercise.js
+In the main SpontaneityFit-API folder (at the same level as models), create these 5 files:
+.env
+.gitignore
+db.js
+index.js
+seed.js
+
+
+
+When you are finished, your project structure will look like this:
+
+/SpontaneityFit-API
+  |-- /models
+  |   |-- Exercise.js
+  |-- .env
+  |-- .gitignore
+  |-- db.js
+  |-- index.js
+  |-- seed.js
+  |-- package.json
+  |-- (node_modules/)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Connecting to a Local Database
+We will configure our project to connect to your local MongoDB database using MongoDB Compass.
+1. Open MongoDB Compass
+Ensure MongoDB Compass is open and connected to your local database at mongodb://localhost:27017.
+2. Create the .env File
+Open the .env file you created.
+Add the following line. This is your "connection string," which tells your app to look for a database named spontaneityFit on your local machine.
+MONGO_URI=mongodb://localhost:27017/spontaneityFit
+3. Create the .gitignore File
+Open the .gitignore file.
+Add the following lines. This tells Git to ignore your secret .env file and the large node_modules folder, so they are not pushed to GitHub.
+node_modules
+.env
+4. Create the Database Connection Logic
+Open the db.js file and add the following code. This script reads the secret connection string from your .env file and creates a reusable function to connect to MongoDB.
+
+
+
+JavaScript
+
+
+// db.js
+const mongoose = require('mongoose');
+require('dotenv').config();
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('MongoDB Connected successfully!');
+  } catch (err) {
+    console.error(`MongoDB Connection Error: ${err.message}`);
+    process.exit(1);
+  }
+};
+module.exports = connectDB;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ Creating the Data Model
+We will define the "schema" for our data. A schema is a blueprint that defines the structure and required fields for our data.
+1. Open models/Exercise.js
+Open the Exercise.js file inside your models folder.
+Add the following code. This tells Mongoose that every "exercise" document in our database must have a name, a focus_tag, and an equipment_tag.
+JavaScript
+
+// models/Exercise.js
+const mongoose = require('mongoose');
+
+const ExerciseSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  focus_tag: {
+    type: String,
+    required: true,
+  },
+  equipment_tag: {
+    type: String,
+    required: true,
+  },
+});
+
+module.exports = mongoose.model('Exercise', ExerciseSchema);
+
+
+
+Seeding the Database
+Your new database is empty. A "seed script" is a simple program we run one time to populate the database with starting data.
+1. Open seed.js
+Open the seed.js file and add the following code. This script will connect to your database, delete any old exercises, and insert a new list of sample exercises.
+
+JavaScript
+
+// seed.js
+const mongoose = require('mongoose');
+const connectDB = require('./db');
+const Exercise = require('./models/Exercise');
+require('dotenv').config();
+
+const sampleExercises = [
+  { name: 'Push Up', focus_tag: 'push', equipment_tag: 'bodyweight' },
+  { name: 'Air Squat', focus_tag: 'legs', equipment_tag: 'bodyweight' },
+  { name: 'Plank', focus_tag: 'full_body', equipment_tag: 'bodyweight' },
+  { name: 'Dumbbell Goblet Squat', focus_tag: 'legs', equipment_tag: 'dumbbells_only' },
+  { name: 'Dumbbell Push Press', focus_tag: 'push', equipment_tag: 'dumbbells_only' },
+  { name: 'Dumbbell Row (per arm)', focus_tag: 'push', equipment_tag: 'dumbbells_only' }
+];
+
+const importData = async () => {
+  await connectDB();
+  try {
+    await Exercise.deleteMany();
+    await Exercise.insertMany(sampleExercises);
+    console.log('Data Imported Successfully!');
+    process.exit();
+  } catch (error) {
+    console.error(`Error with data import: ${error}`);
+    process.exit(1);
+  }
+};
+
+importData();
+
+
+
+
+Building the Core API Server
+Now we will create the main server file that runs our API.
+1. Open index.js
+Open the index.js file and add the following code. This creates a basic Express server, connects to our database using our db.js file, and sets up a "health check" route at the root (/) so we can see if it's running.
+JavaScript
+
+// index.js
+const express = require('express');
+const connectDB = require('./db');
+require('dotenv').config();
+
+connectDB();
+
+const app = express();
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.send('SpontaneityFit API is running...');
+});
+
+// --- TODO: Add your /api/v1/generate-workout route here (for Milestone 3) ---
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+
+
