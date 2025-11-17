@@ -4,8 +4,8 @@ This repository contains the backend API for **Spontaneity Fit**, an instant wor
 
 ## Team Members
 1. [Mine Galve](https://github.com/Mine-Galve)(Group Leader)
-2. 
-3. 
+2. [Jerome Sareno](https://github.com/Jerome407/Jerome407)
+3. [Johann Nocete](https://github.com/Johann-Nocete/Johann-Nocete.git)
 
 ## Project Details
 
