@@ -3,9 +3,9 @@
 This repository contains the backend API for **Spontaneity Fit**, an instant workout generator. This service is designed to eliminate workout decision fatigue by providing instant, customized workout plans via a simple RESTful API.
 
 ## Team Members
-* Jerome Sareno
-* Johann Nocete
-* Mine Galve (Group Leader)
+1. [Mine Galve](https://github.com/Mine-Galve)(Group Leader)
+2. 
+3. 
 
 ## Project Details
 
