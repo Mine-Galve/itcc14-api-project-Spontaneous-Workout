@@ -3,9 +3,9 @@ const express = require('express');
 const connectDB = require('./db');
 const Exercise = require('./models/Exercise');
 const cors = require('cors');
-const path = require('path'); // Import path
+const path = require('path');
+const fs = require('fs'); // Keep fs for debugging if needed
 require('dotenv').config();
-const fs = require('fs');
 
 // Connect to Database
 connectDB();
@@ -14,14 +14,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- 1. THIS IS THE MISSING LINE ---
-// This tells the server: "Allow users to download files (css, js) from the 'public' folder"
+// --- CRITICAL FIX: Pointing to 'client' folder ---
+// 1. Serve the static files (CSS, JS) from the 'client' folder
 app.use(express.static(path.join(process.cwd(), 'client')));
 
-// --- 2. UPDATE THE ROUTE ---
-// Send the index.html file from the 'public' folder
+// 2. Serve the HTML file from the 'client' folder
 app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'client', 'index.html'));
+    const indexPath = path.join(process.cwd(), 'client', 'index.html');
+    res.sendFile(indexPath);
 });
 
 // --- API ENDPOINT ---
@@ -61,20 +61,18 @@ app.get('/api/v1/generate-workout', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-// --- DEBUG ROUTE (To see file names) ---
+// Debug Route (Keep this just in case!)
 app.get('/debug', (req, res) => {
     try {
         const folderName = process.cwd();
         const files = fs.readdirSync(folderName);
-        res.json({
-            "Server Location": folderName,
-            "Files Found": files
-        });
+        res.json({ "Server Location": folderName, "Files Found": files });
     } catch (e) {
         res.json({ error: e.message });
     }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
