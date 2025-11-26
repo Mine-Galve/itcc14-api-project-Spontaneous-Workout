@@ -15,12 +15,12 @@ app.use(express.json());
 
 // --- 1. THIS IS THE MISSING LINE ---
 // This tells the server: "Allow users to download files (css, js) from the 'public' folder"
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 
 // --- 2. UPDATE THE ROUTE ---
 // Send the index.html file from the 'public' folder
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // --- API ENDPOINT ---
