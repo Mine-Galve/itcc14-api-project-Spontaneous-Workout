@@ -3,6 +3,7 @@ const express = require('express');
 const connectDB = require('./db');
 const Exercise = require('./models/Exercise'); // 1. IMPORT YOUR MODEL
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 // Connect to Database
@@ -13,9 +14,10 @@ app.use(cors());
 // Middleware
 app.use(express.json());
 
-// Health Check Route
+
+
 app.get('/', (req, res) => {
-  res.send('SpontaneityFit API is running...');
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // --- THIS IS YOUR NEW API ENDPOINT (MILESTONE 3 & 4) ---

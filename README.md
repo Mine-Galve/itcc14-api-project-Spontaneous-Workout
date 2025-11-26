@@ -3,9 +3,9 @@
 This repository contains the backend API for **Spontaneity Fit**, an instant workout generator. This service is designed to eliminate workout decision fatigue by providing instant, customized workout plans via a simple RESTful API.
 
 ## Team Members
-* Jerome Sareno
-* Johann Nocete
-* Mine Galve (Group Leader)
+1. [Mine Galve](https://github.com/Mine-Galve)(Group Leader)
+2. [Jerome Sareno](https://github.com/Jerome407/Jerome407)
+3. [Johann Nocete](https://github.com/Johann-Nocete/Johann-Nocete.git)
 
 ## Project Details
 
@@ -56,6 +56,13 @@ Deliverables: This README.md file will be updated with the "Problem Statement," 
 
 Checklists:
 
+[x] Hold team meeting to finalize Milestone 1 (Nov Week 1): Project Setup & Local Database Connection
+Status: Completed
+
+Summary: Finalized the topic, defined the data structure, and set up the local development environment with Node.js and MongoDB.
+
+Checklists:
+
 [x] Hold team meeting to finalize the technology stack (e.g., Node.js + Mongoose).
 
 [x] Set up local MongoDB server and get our database connection string (MONGO_URI).
@@ -65,9 +72,9 @@ Checklists:
 [x] Commit all changes and push to the main GitHub repository.
 
 Milestone 2 (Nov Week 2): Basic API & Mongoose Model (Local DB)
-What we'll do: We will set up the basic project scaffolding for our Node.js server. The primary goal is to create a server that runs, successfully connects to the local MongoDB database, and has a script to populate it with sample data.
+Status: Completed
 
-Deliverables: A functional server that can be started locally. A new module/file (e.g., db.js) that handles the Mongoose connection. A seed.js script that uses our Exercise model to populate the database with 15-20 sample exercises.
+Summary: Created the basic Express server and connected it to the database. Wrote a seed script to populate the database with sample exercises.
 
 Checklists:
 
@@ -83,12 +90,12 @@ Checklists:
 
 [x] Write and run the seed.js script to add sample exercises to the live database.
 
-[x] Push the basic server structure to GitHub (make sure the .env file is in .gitignore).
+[x] Push the basic server structure to GitHub.
 
 Milestone 3 (Nov Week 3): Implement Core Generation Endpoint (DB Query)
-What we'll do: We will build the primary feature: the GET /api/v1/generate-workout endpoint. This will involve writing a Mongoose query to fetch data from our exercises collection based on the user's parameters.
+Status: Completed
 
-Deliverables: A functional GET /api/v1/generate-workout endpoint. The endpoint must correctly read the focus and equipment query parameters and use them to query the local MongoDB database.
+Summary: Built the core GET /api/v1/generate-workout endpoint using MongoDB aggregation to randomly select exercises based on user filters.
 
 Checklists:
 
@@ -103,9 +110,9 @@ Checklists:
 [x] Test the endpoint locally.
 
 Milestone 4 (Nov Week 4): Format JSON Response & Finalize API
-What we'll do: We will finalize the generate-workout endpoint by formatting the data from the database into the specific JSON response required by the proposal. This includes adding the default set/rep scheme.
+Status: Completed
 
-Deliverables: The GET /api/v1/generate-workout endpoint will return a fully-formed JSON object that matches the sample output. The README.md will be updated with API usage instructions.
+Summary: Formatted the JSON response to include default sets/reps and a routine title.
 
 Checklists:
 
@@ -118,26 +125,39 @@ Checklists:
 [x] Update the README.md with final API documentation.
 
 Milestone 5 (Dec Week 1): Deployment (Migrate to Atlas & Deploy)
-Note: For our API to work on a live website (like Render), it must connect to a cloud database. Our local localhost database won't work. This milestone is about moving our database to the cloud (MongoDB Atlas) and deploying the app.
+Status: Completed
 
-What we'll do: We will create a free MongoDB Atlas account, move our database to the cloud, and deploy the completed API to a free-tier hosting service (like Render).
-
-Deliverables: A live, public URL for the Spontaneity Fit API.
+Summary: Migrated the database to MongoDB Atlas (cloud) and deployed the full application to Render.
 
 Checklists:
 
-[ ] Create a free account on MongoDB Atlas.
+[x] Create a free account on MongoDB Atlas.
 
-[ ] Get the new MONGO_URI connection string from Atlas.
+[x] Get the new MONGO_URI connection string from Atlas.
 
-[ ] In MongoDB Atlas, change IP Whitelist to "Allow Access from Anywhere" (0.0.0.0/0) so Render can connect.
+[x] In MongoDB Atlas, change IP Whitelist to "Allow Access from Anywhere" (0.0.0.0/0).
 
-[ ] Deploy the application to Render (or a similar service).
+[x] Deploy the application to Render.
 
-[ ] In the Render dashboard, add the MONGO_URI environment variable.
+[x] In the Render dashboard, add the MONGO_URI environment variable.
 
-[ ] Run the seed.js script (locally or on Render) to populate the new Atlas database.
+[x] Run the seed.js script to populate the new Atlas database.
 
-[ ] Test all live endpoints to confirm they work.
+[x] Test all live endpoints to confirm they work.
 
-[ ] Add the live URL to the top of this README.md.
+[x] Add the live URL to the top of this README.md.
+
+Milestone 6 (Dec Week 1): Frontend Integration (Bonus)
+Status: Completed
+
+Summary: Created a simple web interface to demonstrate the API functionality visually.
+
+Checklists:
+
+[x] Create frontend folder with index.html, styles.css, and app.js.
+
+[x] Implement fetch logic to retrieve data from the live API.
+
+[x] Add CORS middleware to the backend to allow browser connections.
+
+[x] Integrate frontend files into the project structure.
