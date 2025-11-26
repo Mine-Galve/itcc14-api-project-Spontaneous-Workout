@@ -5,6 +5,7 @@ const Exercise = require('./models/Exercise');
 const cors = require('cors');
 const path = require('path'); // Import path
 require('dotenv').config();
+const fs = require('fs');
 
 // Connect to Database
 connectDB();
@@ -63,4 +64,17 @@ app.get('/api/v1/generate-workout', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+// --- DEBUG ROUTE (To see file names) ---
+app.get('/debug', (req, res) => {
+    try {
+        const folderName = process.cwd();
+        const files = fs.readdirSync(folderName);
+        res.json({
+            "Server Location": folderName,
+            "Files Found": files
+        });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
 });
