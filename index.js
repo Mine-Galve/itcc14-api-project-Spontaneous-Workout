@@ -1,9 +1,9 @@
 
 const express = require('express');
 const connectDB = require('./db');
-const Exercise = require('./models/Exercise'); // 1. IMPORT YOUR MODEL
+const Exercise = require('./models/Exercise');
 const cors = require('cors');
-const path = require('path');
+const path = require('path'); // Import path
 require('dotenv').config();
 
 // Connect to Database
@@ -11,55 +11,44 @@ connectDB();
 
 const app = express();
 app.use(cors());
-// Middleware
 app.use(express.json());
 
+// --- 1. THIS IS THE MISSING LINE ---
+// This tells the server: "Allow users to download files (css, js) from the 'public' folder"
+app.use(express.static(path.join(__dirname, 'public')));
 
+// --- 2. UPDATE THE ROUTE ---
+// Send the index.html file from the 'public' folder
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- THIS IS YOUR NEW API ENDPOINT (MILESTONE 3 & 4) ---
+// --- API ENDPOINT ---
 app.get('/api/v1/generate-workout', async (req, res) => {
   try {
-    // Get query parameters from the URL
     const { focus, equipment } = req.query;
-
-    //  Build the filter for the database query
     const filter = {};
-    if (focus) {
-      filter.focus_tag = focus;
-    }
-    if (equipment) {
-      filter.equipment_tag = equipment;
-    }
+    if (focus) filter.focus_tag = focus;
+    if (equipment) filter.equipment_tag = equipment;
 
-    //  Use Mongoose Aggregation to find matches AND select 3 random ones
-    // $match finds exercises based on your filter
-    // $sample selects 3 random documents from the results
     const exercises = await Exercise.aggregate([
       { $match: filter },
       { $sample: { size: 3 } }, 
     ]);
 
     if (!exercises || exercises.length === 0) {
-      return res
-        .status(404)
-        .json({ msg: 'No exercises found matching your criteria.' });
+      return res.status(404).json({ msg: 'No exercises found matching your criteria.' });
     }
 
-    // Format the final response (as required by your PDF proposal)
     const formattedExercises = exercises.map((ex) => {
       return {
         name: ex.name,
-        sets: 3, // Add default sets
-        reps: '10-12', // Add default reps
+        sets: 3,
+        reps: '10-12',
       };
     });
 
-    const routineTitle = `${focus || 'Full Body'} ${
-      equipment || ''
-    } Workout`.trim();
+    const routineTitle = `${focus || 'Full Body'} ${equipment || ''} Workout`.trim();
 
     res.json({
       routine_title: routineTitle,
@@ -71,9 +60,7 @@ app.get('/api/v1/generate-workout', async (req, res) => {
   }
 });
 
-
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
