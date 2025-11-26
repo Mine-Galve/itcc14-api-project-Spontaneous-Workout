@@ -5,20 +5,20 @@ const Exercise = require('./models/Exercise');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
-const fs = require('fs');
 
+// Connect to Database
 connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ FIXED: Changed 'public' to 'client'
-app.use(express.static(path.join(process.cwd(), 'client')));
+// Serve static files from 'client' folder
+app.use(express.static(path.join(__dirname, 'client')));
 
-// ✅ FIXED: Changed 'public' to 'client'
+// Root route - serve index.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'client', 'index.html'));
+    res.sendFile(path.join(__dirname, 'client', 'index.html'));
 });
 
 // API ENDPOINT
@@ -61,18 +61,4 @@ app.get('/api/v1/generate-workout', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
-
-// DEBUG ROUTE
-app.get('/debug', (req, res) => {
-    try {
-        const folderName = process.cwd();
-        const files = fs.readdirSync(folderName);
-        res.json({
-            "Server Location": folderName,
-            "Files Found": files
-        });
-    } catch (e) {
-        res.json({ error: e.message });
-    }
 });
