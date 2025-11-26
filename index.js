@@ -4,27 +4,24 @@ const connectDB = require('./db');
 const Exercise = require('./models/Exercise');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs'); // Keep fs for debugging if needed
 require('dotenv').config();
+const fs = require('fs');
 
-// Connect to Database
 connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- CRITICAL FIX: Pointing to 'client' folder ---
-// 1. Serve the static files (CSS, JS) from the 'client' folder
+// ✅ FIXED: Changed 'public' to 'client'
 app.use(express.static(path.join(process.cwd(), 'client')));
 
-// 2. Serve the HTML file from the 'client' folder
+// ✅ FIXED: Changed 'public' to 'client'
 app.get('/', (req, res) => {
-    const indexPath = path.join(process.cwd(), 'client', 'index.html');
-    res.sendFile(indexPath);
+    res.sendFile(path.join(process.cwd(), 'client', 'index.html'));
 });
 
-// --- API ENDPOINT ---
+// API ENDPOINT
 app.get('/api/v1/generate-workout', async (req, res) => {
   try {
     const { focus, equipment } = req.query;
@@ -61,18 +58,21 @@ app.get('/api/v1/generate-workout', async (req, res) => {
   }
 });
 
-// Debug Route (Keep this just in case!)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// DEBUG ROUTE
 app.get('/debug', (req, res) => {
     try {
         const folderName = process.cwd();
         const files = fs.readdirSync(folderName);
-        res.json({ "Server Location": folderName, "Files Found": files });
+        res.json({
+            "Server Location": folderName,
+            "Files Found": files
+        });
     } catch (e) {
         res.json({ error: e.message });
     }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
