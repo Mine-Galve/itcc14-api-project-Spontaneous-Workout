@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spontaneity Fit</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Spontaneity Fit</h1>
+        <p>Instant Workout Generator</p>
+
+        <div class="controls">
+            <label>Target Area:</label>
+            <select id="focus">
+                <option value="full_body">Full Body</option>
+                <option value="legs">Legs</option>
+                <option value="push">Push (Chest/Triceps)</option>
+                <option value="pull">Pull (Back/Biceps)</option>
+            </select>
+
+            <label>Equipment:</label>
+            <select id="equipment">
+                <option value="bodyweight">Bodyweight</option>
+                <option value="dumbbells_only">Dumbbells Only</option>
+            </select>
+
+            <button id="generateBtn">Generate Workout</button>
+        </div>
+
+        <div id="result-area" class="hidden">
+            <h2 id="routine-title">...</h2>
+            <ul id="exercise-list">
+                </ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

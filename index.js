@@ -1,14 +1,15 @@
-// index.js
+
 const express = require('express');
 const connectDB = require('./db');
 const Exercise = require('./models/Exercise'); // 1. IMPORT YOUR MODEL
+const cors = require('cors');
 require('dotenv').config();
 
 // Connect to Database
 connectDB();
 
 const app = express();
-
+app.use(cors());
 // Middleware
 app.use(express.json());
 
@@ -20,10 +21,10 @@ app.get('/', (req, res) => {
 // --- THIS IS YOUR NEW API ENDPOINT (MILESTONE 3 & 4) ---
 app.get('/api/v1/generate-workout', async (req, res) => {
   try {
-    // 2. Get query parameters from the URL
+    // Get query parameters from the URL
     const { focus, equipment } = req.query;
 
-    // 3. Build the filter for the database query
+    //  Build the filter for the database query
     const filter = {};
     if (focus) {
       filter.focus_tag = focus;
@@ -32,7 +33,7 @@ app.get('/api/v1/generate-workout', async (req, res) => {
       filter.equipment_tag = equipment;
     }
 
-    // 4. Use Mongoose Aggregation to find matches AND select 3 random ones
+    //  Use Mongoose Aggregation to find matches AND select 3 random ones
     // $match finds exercises based on your filter
     // $sample selects 3 random documents from the results
     const exercises = await Exercise.aggregate([
@@ -46,7 +47,7 @@ app.get('/api/v1/generate-workout', async (req, res) => {
         .json({ msg: 'No exercises found matching your criteria.' });
     }
 
-    // 5. Format the final response (as required by your PDF proposal)
+    // Format the final response (as required by your PDF proposal)
     const formattedExercises = exercises.map((ex) => {
       return {
         name: ex.name,
@@ -68,7 +69,7 @@ app.get('/api/v1/generate-workout', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-// ----------------------------------------------------
+
 
 const PORT = process.env.PORT || 3000;
 
