@@ -9,13 +9,12 @@ generateBtn.addEventListener('click', async () => {
     const focus = document.getElementById('focus').value;
     const equipment = document.getElementById('equipment').value;
 
-    generateBtn.innerText = "Waking up server...";
+    generateBtn.innerText = "Generating...";
     generateBtn.disabled = true;
     
     try {
-        // Longer timeout for cold starts
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
         
         const response = await fetch(`${API_URL}?focus=${focus}&equipment=${equipment}`, {
             signal: controller.signal
@@ -29,15 +28,26 @@ generateBtn.addEventListener('click', async () => {
 
         const data = await response.json();
 
-        // Update UI
         routineTitle.innerText = data.routine_title;
         exerciseList.innerHTML = '';
 
-        data.exercises.forEach(exercise => {
+        data.exercises.forEach((exercise, index) => {
             const li = document.createElement('li');
             li.innerHTML = `
-                <strong>${exercise.name}</strong> <br>
-                <small>${exercise.sets} sets x ${exercise.reps} reps</small>
+                <div class="exercise-header">
+                    <strong>${index + 1}. ${exercise.name}</strong>
+                    ${exercise.difficulty ? `<span class="difficulty ${exercise.difficulty}">${exercise.difficulty}</span>` : ''}
+                </div>
+                <div class="exercise-details">
+                    <small><strong>${exercise.sets} sets × ${exercise.reps} reps</strong></small>
+                    ${exercise.musclesWorked ? `<small class="muscles">💪 ${exercise.musclesWorked.join(', ')}</small>` : ''}
+                </div>
+                ${exercise.instructions ? `
+                    <details class="instructions">
+                        <summary>📋 View Instructions</summary>
+                        <p>${exercise.instructions}</p>
+                    </details>
+                ` : ''}
             `;
             exerciseList.appendChild(li);
         });
