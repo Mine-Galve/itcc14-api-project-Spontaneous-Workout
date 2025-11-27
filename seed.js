@@ -1,4 +1,4 @@
-// seed.js
+// old data for documentation purposes only
 const mongoose = require('mongoose');
 const connectDB = require('./db');
 const Exercise = require('./models/Exercise');
