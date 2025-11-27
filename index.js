@@ -1,5 +1,27 @@
 
-// In index.js - update the generate-workout endpoint
+const express = require('express');
+const connectDB = require('./db');
+const Exercise = require('./models/Exercise');
+const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
+
+// Connect to Database
+connectDB();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from 'client' folder
+app.use(express.static(path.join(__dirname, 'client')));
+
+// Root route - serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'index.html'));
+});
+
+// API ENDPOINT
 app.get('/api/v1/generate-workout', async (req, res) => {
   try {
     const { focus, equipment } = req.query;
@@ -9,7 +31,7 @@ app.get('/api/v1/generate-workout', async (req, res) => {
 
     const exercises = await Exercise.aggregate([
       { $match: filter },
-      { $sample: { size: 5 } }, // Changed to 5 exercises
+      { $sample: { size: 5 } }, 
     ]);
 
     if (!exercises || exercises.length === 0) {
@@ -21,9 +43,9 @@ app.get('/api/v1/generate-workout', async (req, res) => {
         name: ex.name,
         sets: 3,
         reps: '10-12',
-        instructions: ex.instructions, // NEW
-        difficulty: ex.difficulty, // NEW
-        musclesWorked: ex.musclesWorked // NEW
+        instructions: ex.instructions || 'No instructions available',
+        difficulty: ex.difficulty || 'beginner',
+        musclesWorked: ex.musclesWorked || []
       };
     });
 
@@ -37,4 +59,9 @@ app.get('/api/v1/generate-workout', async (req, res) => {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
