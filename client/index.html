@@ -8,7 +8,10 @@
 </head>
 <body>
 
-    <div id="auth-container" class="container" style="margin-bottom: 20px;">
+    <div id="auth-view" class="container">
+        <h1>Welcome</h1>
+        <p>Please login to start your workout.</p>
+
         <div id="login-form">
             <h2>Login</h2>
             <input type="email" id="email" placeholder="Email">
@@ -25,16 +28,13 @@
             <button id="registerBtn">Create Account</button>
             <p>Already have an account? <a href="#" id="show-login">Login</a></p>
         </div>
-
-        <div id="user-info" class="hidden">
-            <h3>Welcome back! 👋</h3>
-            <button id="viewSavedBtn" style="background-color: #007bff;">View My Saved Workouts</button>
-            <button id="logoutBtn" style="background-color: #dc3545;">Logout</button>
-        </div>
     </div>
 
-    <div class="container">
-        <h1>Spontaneity Fit</h1>
+    <div id="app-view" class="container hidden">
+        <div class="header-row">
+            <h1>Spontaneity Fit</h1>
+            <button id="logoutBtn" style="background-color: #dc3545; width: auto; padding: 5px 15px; font-size: 14px;">Logout</button>
+        </div>
         <p>Instant Workout Generator</p>
 
         <div class="controls">
@@ -58,7 +58,8 @@
         <div id="result-area" class="hidden">
             <h2 id="routine-title">...</h2>
             
-            <button id="saveWorkoutBtn" class="hidden" style="background-color: #ffc107; color: black;">⭐ Save This Workout</button>
+            <button id="saveWorkoutBtn" style="background-color: #ffc107; color: black;">⭐ Save This Workout</button>
+            <button id="viewSavedBtn" style="background-color: #007bff; margin-top: 10px;">View My Saved Workouts</button>
 
             <div id="progress-container" class="hidden">
                 <p>Workout Progress: <span id="progress-text">0%</span></p>
