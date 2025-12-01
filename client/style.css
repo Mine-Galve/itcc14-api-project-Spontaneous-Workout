@@ -12,7 +12,7 @@ body {
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    width: 500px;
+    width: 350px;
     text-align: center;
 }
 
@@ -47,83 +47,17 @@ button {
 }
 
 button:hover { background-color: #218838; }
-button:disabled { background-color: #ccc; cursor: not-allowed; }
 
-#result-area { 
-    margin-top: 20px; 
-    border-top: 1px solid #eee; 
-    padding-top: 20px; 
-}
+#result-area { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
 
-ul { 
-    list-style: none; 
-    padding: 0; 
-    text-align: left; 
-}
+ul { list-style: none; padding: 0; text-align: left; }
 
 li {
-    background: #f8f9fa;
-    margin-bottom: 15px;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 5px solid #28a745;
-}
-
-.exercise-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: #e9ecef;
     margin-bottom: 8px;
-}
-
-.difficulty {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.difficulty.beginner { background: #d4edda; color: #155724; }
-.difficulty.intermediate { background: #fff3cd; color: #856404; }
-.difficulty.advanced { background: #f8d7da; color: #721c24; }
-
-.exercise-details {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-bottom: 10px;
-}
-
-.muscles {
-    color: #666;
-    font-style: italic;
-}
-
-.instructions {
-    margin-top: 10px;
     padding: 10px;
-    background: white;
     border-radius: 5px;
-    border: 1px solid #dee2e6;
-}
-
-.instructions summary {
-    cursor: pointer;
-    font-weight: bold;
-    color: #007bff;
-    padding: 5px;
-}
-
-.instructions summary:hover {
-    color: #0056b3;
-}
-
-.instructions p {
-    margin-top: 10px;
-    line-height: 1.6;
-    color: #495057;
-    text-align: left;
+    border-left: 5px solid #28a745;
 }
 
 .hidden { display: none; }

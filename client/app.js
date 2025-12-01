@@ -59,7 +59,9 @@ generateBtn.addEventListener('click', async () => {
                     ${exercise.difficulty ? `<span class="difficulty ${exercise.difficulty}">${exercise.difficulty}</span>` : ''}
                 </div>
                 
-                ${imageHTML}  <div class="exercise-details">
+                ${imageHTML}
+
+                <div class="exercise-details">
                     <small><strong>${exercise.sets} sets × ${exercise.reps} reps</strong></small>
                     ${exercise.musclesWorked ? `<small class="muscles">💪 ${exercise.musclesWorked.join(', ')}</small>` : ''}
                 </div>
@@ -71,6 +73,7 @@ generateBtn.addEventListener('click', async () => {
                     </details>
                 ` : ''}
 
+                <!-- --- NEW: Checkbox for Progress --- -->
                 <label class="completion-checkbox">
                     <input type="checkbox" class="exercise-check"> Mark as Done
                 </label>
