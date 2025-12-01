@@ -34,14 +34,23 @@ label {
     color: #444;
 }
 
-select, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+/* --- UPDATED SECTION FOR INPUTS --- */
+input, select, button {
+    width: 100%;           /* Fill container */
+    padding: 12px;         /* Better click area */
+    margin: 8px 0 16px 0;  /* Spacing around elements */
+    display: block;        /* Forces vertical stacking */
     border: 1px solid #ccc;
+    border-radius: 5px;
     font-size: 16px;
+    box-sizing: border-box; /* Prevents layout breakage */
+}
+
+/* Focus effects for better UX */
+input:focus, select:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.2);
 }
 
 button {
@@ -70,12 +79,14 @@ li {
 .hidden {
     display: none !important;
 }
+
 .header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
+
 .exercise-image {
     text-align: center;
     margin: 10px 0;
