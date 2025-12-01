@@ -8,6 +8,31 @@
 </head>
 <body>
 
+    <div id="auth-container" class="container" style="margin-bottom: 20px;">
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginBtn">Login</button>
+            <p>New here? <a href="#" id="show-register">Register</a></p>
+        </div>
+        
+        <div id="register-form" class="hidden">
+            <h2>Register</h2>
+            <input type="text" id="reg-username" placeholder="Username">
+            <input type="email" id="reg-email" placeholder="Email">
+            <input type="password" id="reg-password" placeholder="Password">
+            <button id="registerBtn">Create Account</button>
+            <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+        </div>
+
+        <div id="user-info" class="hidden">
+            <h3>Welcome back! 👋</h3>
+            <button id="viewSavedBtn" style="background-color: #007bff;">View My Saved Workouts</button>
+            <button id="logoutBtn" style="background-color: #dc3545;">Logout</button>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Spontaneity Fit</h1>
         <p>Instant Workout Generator</p>
@@ -32,6 +57,8 @@
 
         <div id="result-area" class="hidden">
             <h2 id="routine-title">...</h2>
+            
+            <button id="saveWorkoutBtn" class="hidden" style="background-color: #ffc107; color: black;">⭐ Save This Workout</button>
 
             <div id="progress-container" class="hidden">
                 <p>Workout Progress: <span id="progress-text">0%</span></p>
@@ -40,9 +67,14 @@
                 </div>
             </div>
 
-            <ul id="exercise-list">
-                </ul>
+            <ul id="exercise-list"></ul>
         </div>
+    </div>
+
+    <div id="saved-workouts-area" class="container hidden" style="margin-top: 20px;">
+        <h2>My Saved Workouts</h2>
+        <div id="saved-list"></div>
+        <button id="closeSavedBtn" style="background-color: #6c757d;">Close</button>
     </div>
 
     <script src="app.js"></script>
