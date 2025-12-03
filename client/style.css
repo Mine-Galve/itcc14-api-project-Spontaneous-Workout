@@ -1,30 +1,55 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    
-    /* FLEXBOX FIXES */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
-    flex-direction: column;  /* 1. Stacks items vertically */
-    align-items: center;     /* 2. Centers items horizontally */
-    gap: 20px;               /* 3. Adds space between the boxes */
-    
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     padding-top: 50px;
-    padding-bottom: 50px;    /* Adds space at bottom for scrolling */
+    padding-bottom: 50px;
     margin: 0;
-    min-height: 100vh;       /* Ensures background covers full screen */
+    min-height: 100vh;
 }
 
 .container {
     background: white;
     padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    width: 350px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 500px;
     text-align: center;
+    animation: slideIn 0.3s ease-out;
 }
 
-h1 { margin-top: 0; color: #333; }
-p { color: #666; margin-bottom: 20px; }
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 { 
+    margin-top: 0; 
+    color: #333;
+    font-size: 2.2em;
+    font-weight: 700;
+}
+
+h2 {
+    color: #444;
+    font-size: 1.5em;
+    margin-top: 0;
+}
+
+p { 
+    color: #666; 
+    margin-bottom: 20px; 
+}
 
 label {
     display: block;
@@ -34,46 +59,76 @@ label {
     color: #444;
 }
 
-/* --- UPDATED SECTION FOR INPUTS --- */
 input, select, button {
-    width: 100%;           /* Fill container */
-    padding: 12px;         /* Better click area */
-    margin: 8px 0 16px 0;  /* Spacing around elements */
-    display: block;        /* Forces vertical stacking */
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 16px 0;
+    display: block;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
     font-size: 16px;
-    box-sizing: border-box; /* Prevents layout breakage */
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
-/* Focus effects for better UX */
 input:focus, select:focus {
     outline: none;
     border-color: #28a745;
-    box-shadow: 0 0 5px rgba(40, 167, 69, 0.2);
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.3);
 }
 
 button {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
     font-weight: bold;
     cursor: pointer;
     border: none;
     margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
-button:hover { background-color: #218838; }
+button:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
 
-#result-area { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+button:active {
+    transform: translateY(0);
+}
 
-ul { list-style: none; padding: 0; text-align: left; }
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#result-area { 
+    margin-top: 20px; 
+    border-top: 3px solid #28a745; 
+    padding-top: 20px; 
+}
+
+ul { 
+    list-style: none; 
+    padding: 0; 
+    text-align: left; 
+}
 
 li {
-    background: #e9ecef;
-    margin-bottom: 8px;
-    padding: 10px;
-    border-radius: 5px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 10px;
     border-left: 5px solid #28a745;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+li:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
 }
 
 .hidden {
@@ -87,54 +142,273 @@ li {
     margin-bottom: 20px;
 }
 
+.header-row h1 {
+    margin: 0;
+}
+
+.exercise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.exercise-header strong {
+    font-size: 1.1em;
+    color: #333;
+}
+
+.difficulty {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.difficulty.beginner {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.difficulty.intermediate {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+}
+
+.difficulty.advanced {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
 .exercise-image {
     text-align: center;
-    margin: 10px 0;
+    margin: 15px 0;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    padding: 10px;
 }
 
 .exercise-image img {
     max-width: 100%;
     height: auto;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }
 
-/* Progress Bar Styling */
+.exercise-details {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    border: 2px dashed #28a745;
+}
+
+.exercise-details small {
+    color: #28a745;
+    font-size: 1em;
+}
+
+.instructions {
+    margin-top: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+.instructions summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #667eea;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.instructions summary:hover {
+    color: #764ba2;
+}
+
+.instructions p {
+    margin-top: 10px;
+    color: #555;
+    line-height: 1.6;
+}
+
 .progress-bar-bg {
     width: 100%;
-    height: 10px;
+    height: 12px;
     background-color: #e0e0e0;
-    border-radius: 5px;
+    border-radius: 10px;
     margin-bottom: 20px;
     overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
 #progress-bar-fill {
     height: 100%;
     width: 0%;
-    background-color: #28a745;
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
     transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
 }
 
-/* Checkbox Styling */
+#progress-text {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1.2em;
+}
+
 .completion-checkbox {
-    display: block;
-    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
     font-size: 14px;
     cursor: pointer;
     user-select: none;
+    padding: 8px;
+    background: white;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.completion-checkbox:hover {
+    background: #f8f9fa;
 }
 
 .completion-checkbox input {
-    margin-right: 8px;
-    transform: scale(1.2);
+    margin: 0 10px 0 0;
+    width: auto;
+    transform: scale(1.3);
+    cursor: pointer;
 }
 
-/* Style for when an item is done */
+.completion-checkbox span {
+    color: #555;
+    font-weight: 500;
+}
+
 li.completed {
-    opacity: 0.6;
-    background-color: #e8f5e9;
-    border-left-color: #aaa;
+    opacity: 0.7;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-left-color: #155724;
+}
+
+li.completed .exercise-header strong {
+    text-decoration: line-through;
+    color: #155724;
+}
+
+/* Saved Workouts Styling */
+.saved-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e9ecef;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.saved-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    border-color: #28a745;
+}
+
+.saved-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.saved-card-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.saved-card-header small {
+    color: #666;
+    font-size: 0.85em;
+    background: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 5px;
+}
+
+.saved-card-info {
+    font-size: 0.9em;
+    color: #666;
+    margin: 8px 0;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #28a745;
+}
+
+.load-saved-btn {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    margin-top: 10px;
+    padding: 10px 15px;
+    font-size: 14px;
+    box-shadow: 0 3px 10px rgba(0, 123, 255, 0.3);
+}
+
+.load-saved-btn:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 1.1em;
+    line-height: 1.8;
+}
+
+/* Auth Links */
+a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+    
+    .header-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+button:disabled {
+    animation: pulse 1.5s ease-in-out infinite;
 }

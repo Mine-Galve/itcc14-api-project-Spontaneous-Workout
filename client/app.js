@@ -34,6 +34,7 @@ const closeSavedBtn = document.getElementById('closeSavedBtn');
 // State Variables
 let currentExercises = []; // Stores the generated workout for saving
 let authToken = localStorage.getItem('token'); // Gets token if user was already logged in
+let isWorkoutSaved = false; // Track if current workout is saved
 
 const API_URL = "https://spontaneity-fit-api.onrender.com"; 
 // Use "http://localhost:3000" if running locally
@@ -41,36 +42,21 @@ const API_URL = "https://spontaneity-fit-api.onrender.com";
 // Run immediately on page load to decide which screen to show
 checkLoginState();
 
-
-
 function checkLoginState() {
     if (authToken) {
-        // STATE: User IS Logged In
-        // 1. Hide the Login Screen
         authView.classList.add('hidden');
-        
-        // 2. Show the Main App Screen
         appView.classList.remove('hidden');
         
-        // 3. Reset the "Saved" button state just in case
         if (currentExercises.length === 0) {
             resultArea.classList.add('hidden');
         }
     } else {
-        // STATE: User is NOT Logged In
-        // 1. Show the Login Screen
         authView.classList.remove('hidden');
-        
-        // 2. Hide the Main App Screen completely
         appView.classList.add('hidden');
-        
-        // 3. Reset forms to default (show login, hide register)
         loginForm.classList.remove('hidden');
         registerForm.classList.add('hidden');
     }
 }
-
-
 
 // Toggle between Login and Register forms
 document.getElementById('show-register').addEventListener('click', (e) => {
@@ -90,6 +76,11 @@ loginBtn.addEventListener('click', async () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
+    if (!email || !password) {
+        alert("Please fill in all fields");
+        return;
+    }
+    
     try {
         const res = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
@@ -101,12 +92,14 @@ loginBtn.addEventListener('click', async () => {
         if (data.token) {
             localStorage.setItem('token', data.token);
             authToken = data.token;
-            checkLoginState(); // This triggers the screen swap!
-            // Optional: alert("Logged in successfully!");
+            checkLoginState();
         } else {
             alert(data.msg || "Login failed");
         }
-    } catch (err) { console.error(err); alert("Error logging in"); }
+    } catch (err) { 
+        console.error(err); 
+        alert("Error logging in"); 
+    }
 });
 
 // REGISTER Handler
@@ -114,6 +107,11 @@ registerBtn.addEventListener('click', async () => {
     const username = document.getElementById('reg-username').value;
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
+
+    if (!username || !email || !password) {
+        alert("Please fill in all fields");
+        return;
+    }
 
     try {
         const res = await fetch(`${API_URL}/api/auth/register`, {
@@ -126,28 +124,31 @@ registerBtn.addEventListener('click', async () => {
         if (data.token) {
             localStorage.setItem('token', data.token);
             authToken = data.token;
-            checkLoginState(); // This triggers the screen swap!
+            checkLoginState();
             alert("Account created! Welcome.");
         } else {
             alert(data.msg || "Registration failed");
         }
-    } catch (err) { console.error(err); alert("Error registering"); }
+    } catch (err) { 
+        console.error(err); 
+        alert("Error registering"); 
+    }
 });
 
 // LOGOUT Handler
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('token');
     authToken = null;
-    checkLoginState(); // Swaps back to login screen
+    checkLoginState();
     
     // Clean up current session data
     currentExercises = [];
+    isWorkoutSaved = false;
     resultArea.classList.add('hidden');
     savedWorkoutsArea.classList.add('hidden');
 });
 
-
-
+// GENERATE WORKOUT
 generateBtn.addEventListener('click', async () => {
     const focus = document.getElementById('focus').value;
     const equipment = document.getElementById('equipment').value;
@@ -164,6 +165,7 @@ generateBtn.addEventListener('click', async () => {
         // Store data for saving later
         currentExercises = data.exercises;
         routineTitle.innerText = data.routine_title;
+        isWorkoutSaved = false; // Reset saved state for new workout
         
         // Render the list
         renderExerciseList(data.exercises);
@@ -171,18 +173,17 @@ generateBtn.addEventListener('click', async () => {
         // UI Updates
         resultArea.classList.remove('hidden');
         
-        // Reset Save Button
+        // Reset Save Button - FIX: Enable button for new workout
         saveWorkoutBtn.innerText = "⭐ Save This Workout";
         saveWorkoutBtn.disabled = false;
+        saveWorkoutBtn.style.opacity = "1";
 
         // Reset Progress Bar
-        progressBar.style.width = '0%';
-        progressText.innerText = '0%';
-        progressContainer.classList.remove('hidden');
+        resetProgressBar();
 
     } catch (error) {
         console.error("Error:", error);
-        alert("Could not get workout.");
+        alert("Could not get workout. Please try again.");
     } finally {
         generateBtn.innerText = "Generate Workout";
         generateBtn.disabled = false;
@@ -208,9 +209,15 @@ function renderExerciseList(exercises) {
                 <small><strong>${exercise.sets} sets × ${exercise.reps} reps</strong></small>
             </div>
             ${exercise.instructions ? `
-                <details class="instructions"><summary>📋 View Instructions</summary><p>${exercise.instructions}</p></details>
+                <details class="instructions">
+                    <summary>📋 View Instructions</summary>
+                    <p>${exercise.instructions}</p>
+                </details>
             ` : ''}
-            <label class="completion-checkbox"><input type="checkbox" class="exercise-check"> Mark as Done</label>
+            <label class="completion-checkbox">
+                <input type="checkbox" class="exercise-check"> 
+                <span>Mark as Done</span>
+            </label>
         `;
         exerciseList.appendChild(li);
     });
@@ -219,11 +226,35 @@ function renderExerciseList(exercises) {
     attachProgressLogic();
 }
 
+// FIX: Reset progress bar function
+function resetProgressBar() {
+    progressBar.style.width = '0%';
+    progressText.innerText = '0%';
+    progressContainer.classList.remove('hidden');
+    
+    // Uncheck all checkboxes
+    document.querySelectorAll('.exercise-check').forEach(box => {
+        box.checked = false;
+        box.closest('li').classList.remove('completed');
+    });
+}
+
 // Save Workout
 saveWorkoutBtn.addEventListener('click', async () => {
-    if (!authToken) return alert("Please login to save workouts");
+    if (!authToken) {
+        alert("Please login to save workouts");
+        return;
+    }
+
+    if (isWorkoutSaved) {
+        alert("This workout is already saved!");
+        return;
+    }
 
     const title = routineTitle.innerText;
+    
+    saveWorkoutBtn.innerText = "Saving...";
+    saveWorkoutBtn.disabled = true;
     
     try {
         const res = await fetch(`${API_URL}/api/workouts/save`, {
@@ -236,15 +267,28 @@ saveWorkoutBtn.addEventListener('click', async () => {
         });
         
         if (res.ok) {
-            alert("Workout Saved Successfully! ⭐");
-            saveWorkoutBtn.innerText = "Saved!";
-            saveWorkoutBtn.disabled = true;
+            isWorkoutSaved = true;
+            alert("✅ Workout Saved Successfully!");
+            saveWorkoutBtn.innerText = "✓ Saved";
+            saveWorkoutBtn.style.opacity = "0.6";
+        } else {
+            throw new Error("Failed to save");
         }
-    } catch (err) { console.error(err); alert("Error saving workout"); }
+    } catch (err) { 
+        console.error(err); 
+        alert("Error saving workout");
+        saveWorkoutBtn.innerText = "⭐ Save This Workout";
+        saveWorkoutBtn.disabled = false;
+    }
 });
 
-// View Saved Workouts
+// View Saved Workouts - FIX: Improved load functionality
 viewSavedBtn.addEventListener('click', async () => {
+    if (!authToken) {
+        alert("Please login to view saved workouts");
+        return;
+    }
+    
     try {
         const res = await fetch(`${API_URL}/api/workouts/my-workouts`, {
             headers: { 'x-auth-token': authToken }
@@ -252,68 +296,71 @@ viewSavedBtn.addEventListener('click', async () => {
         const workouts = await res.json();
         
         savedList.innerHTML = '';
+        
         if (workouts.length === 0) {
-            savedList.innerHTML = '<p style="text-align:center; padding: 20px;">No saved workouts yet.</p>';
+            savedList.innerHTML = '<p class="empty-state">📋 No saved workouts yet.<br>Generate and save your first workout!</p>';
+        } else {
+            workouts.forEach(w => {
+                const div = document.createElement('div');
+                div.className = 'saved-card';
+
+                div.innerHTML = `
+                    <div class="saved-card-header">
+                        <h4>${w.title}</h4>
+                        <small>${new Date(w.savedAt).toLocaleDateString()}</small>
+                    </div>
+                    <p class="saved-card-info">💪 ${w.exercises.length} exercises</p>
+                    <button class="load-saved-btn">Load Workout</button>
+                `;
+                
+                // FIX: Improved load button functionality
+                div.querySelector('.load-saved-btn').addEventListener('click', () => {
+                    currentExercises = w.exercises;
+                    routineTitle.innerText = w.title;
+                    isWorkoutSaved = true; // Mark as already saved
+                    
+                    renderExerciseList(w.exercises);
+                    resultArea.classList.remove('hidden');
+                    savedWorkoutsArea.classList.add('hidden');
+                    
+                    // Reset progress for loaded workout
+                    resetProgressBar();
+                    
+                    // Update save button for loaded workout
+                    saveWorkoutBtn.disabled = true;
+                    saveWorkoutBtn.innerText = "✓ Already Saved";
+                    saveWorkoutBtn.style.opacity = "0.6";
+                });
+
+                savedList.appendChild(div);
+            });
         }
         
-        workouts.forEach(w => {
-            const div = document.createElement('div');
-            div.className = 'saved-card';
-            // Styling for the saved card is done here or in CSS
-            div.style.border = "1px solid #ddd";
-            div.style.padding = "10px";
-            div.style.marginBottom = "10px";
-            div.style.borderRadius = "5px";
-            div.style.backgroundColor = "#fff";
-
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h4 style="margin:0;">${w.title}</h4>
-                    <small>${new Date(w.savedAt).toLocaleDateString()}</small>
-                </div>
-                <p style="font-size: 0.9em; color: #666; margin: 5px 0;">${w.exercises.length} exercises</p>
-                <button class="load-saved-btn" style="background-color:#28a745; margin-top:5px; padding: 5px 10px; font-size: 14px;">Load Workout</button>
-            `;
-            
-            // Add click listener to the "Load" button inside this card
-            div.querySelector('.load-saved-btn').addEventListener('click', () => {
-                currentExercises = w.exercises;
-                routineTitle.innerText = w.title;
-                renderExerciseList(w.exercises);
-                resultArea.classList.remove('hidden');
-                savedWorkoutsArea.classList.add('hidden'); // Close modal
-                
-                // Hide save button since it's already saved
-                saveWorkoutBtn.disabled = true;
-                saveWorkoutBtn.innerText = "Loaded from Saves";
-            });
-
-            savedList.appendChild(div);
-        });
-        
         savedWorkoutsArea.classList.remove('hidden');
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error(err);
+        alert("Error loading saved workouts");
+    }
 });
 
 closeSavedBtn.addEventListener('click', () => {
     savedWorkoutsArea.classList.add('hidden');
 });
 
-
-// ==========================================
-// 6. HELPER FUNCTIONS
-// ==========================================
-
+// Progress Logic
 function attachProgressLogic() {
     const checkboxes = document.querySelectorAll('.exercise-check');
     checkboxes.forEach(box => {
         box.addEventListener('change', (e) => {
             // Visual strikethrough effect
             const li = e.target.closest('li');
-            if (e.target.checked) li.classList.add('completed');
-            else li.classList.remove('completed');
+            if (e.target.checked) {
+                li.classList.add('completed');
+            } else {
+                li.classList.remove('completed');
+            }
 
-            // Calculate Math
+            // Calculate progress
             const total = checkboxes.length;
             const checked = document.querySelectorAll('.exercise-check:checked').length;
             const pct = Math.round((checked / total) * 100);
@@ -322,7 +369,11 @@ function attachProgressLogic() {
             progressBar.style.width = `${pct}%`;
             progressText.innerText = `${pct}%`;
             
-            if (pct === 100) setTimeout(() => alert("🎉 Workout Complete! Great job!"), 200);
+            if (pct === 100) {
+                setTimeout(() => {
+                    alert("🎉 Workout Complete! Great job!");
+                }, 200);
+            }
         });
     });
 }
