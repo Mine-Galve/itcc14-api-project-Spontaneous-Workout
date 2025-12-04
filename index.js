@@ -6,13 +6,12 @@ const path = require('path');
 require('dotenv').config();
 
 // --- IMPORTS ---
-const Exercise = require('./models/Exercise'); // original model
-const User = require('./models/User');         // New User model
-const SavedWorkout = require('./models/SavedWorkout'); // New SavedWorkout model
-const auth = require('./middleware/auth');     // New Middleware
-const crypto = require('crypto');              // Native Node security
-const jwt = require('jsonwebtoken');           // login tokens
-
+const Exercise = require('./models/Exercise');
+const User = require('./models/User');
+const SavedWorkout = require('./models/SavedWorkout');
+const auth = require('./middleware/auth');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 connectDB();
 
@@ -26,7 +25,6 @@ app.use(express.static(path.join(process.cwd(), 'client')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'client', 'index.html'));
 });
-
 
 // Register User
 app.post('/api/auth/register', async (req, res) => {
@@ -55,7 +53,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-
+// Login User
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -78,16 +76,16 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-
-
-
+// Save Workout
 app.post('/api/workouts/save', auth, async (req, res) => {
   try {
-    const { title, exercises } = req.body;
+    const { title, exercises, progress } = req.body;
     const newWorkout = new SavedWorkout({
       user: req.user.id,
       title,
-      exercises
+      exercises,
+      progress: progress || 0,
+      completedExercises: []
     });
     const workout = await newWorkout.save();
     res.json(workout);
@@ -97,7 +95,7 @@ app.post('/api/workouts/save', auth, async (req, res) => {
   }
 });
 
-
+// Get User's Workouts
 app.get('/api/workouts/my-workouts', auth, async (req, res) => {
   try {
     const workouts = await SavedWorkout.find({ user: req.user.id }).sort({ savedAt: -1 });
@@ -108,17 +106,70 @@ app.get('/api/workouts/my-workouts', auth, async (req, res) => {
   }
 });
 
+// Update Workout Progress
+app.put('/api/workouts/:id', auth, async (req, res) => {
+  try {
+    const { progress, completedExercises } = req.body;
+    
+    let workout = await SavedWorkout.findById(req.params.id);
+    
+    if (!workout) {
+      return res.status(404).json({ msg: 'Workout not found' });
+    }
+    
+    // Make sure user owns this workout
+    if (workout.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+    
+    workout.progress = progress;
+    workout.completedExercises = completedExercises;
+    
+    await workout.save();
+    res.json(workout);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Workout not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
 
+// Delete Workout
+app.delete('/api/workouts/:id', auth, async (req, res) => {
+  try {
+    const workout = await SavedWorkout.findById(req.params.id);
+    
+    if (!workout) {
+      return res.status(404).json({ msg: 'Workout not found' });
+    }
+    
+    // Make sure user owns this workout
+    if (workout.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+    
+    await workout.deleteOne();
+    res.json({ msg: 'Workout removed' });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Workout not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// Generate Workout
 app.get('/api/v1/generate-workout', async (req, res) => {
   try {
     const { focus, equipment } = req.query;
     
-    // Build filter object
     const filter = {};
     if (focus) filter.focus_tag = focus;
     if (equipment) filter.equipment_tag = equipment;
 
-    // Get 5 random exercises matching the filter
     const exercises = await Exercise.aggregate([
       { $match: filter },
       { $sample: { size: 5 } }, 
@@ -128,7 +179,6 @@ app.get('/api/v1/generate-workout', async (req, res) => {
       return res.status(404).json({ msg: 'No exercises found matching your criteria.' });
     }
 
-    // Format response
     const formattedExercises = exercises.map((ex) => {
       return {
         name: ex.name,

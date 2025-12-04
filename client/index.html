@@ -8,7 +8,8 @@
 </head>
 <body>
 
-    <div id="auth-view" class="container">
+    <!-- AUTH VIEW (Login/Register) -->
+    <div id="auth-view" class="container auth-container">
         <h1>Welcome</h1>
         <p>Please login to start your workout.</p>
 
@@ -30,52 +31,66 @@
         </div>
     </div>
 
-    <div id="app-view" class="container hidden">
-        <div class="header-row">
-            <h1>Spontaneity Fit</h1>
-            <button id="logoutBtn" style="background-color: #dc3545; width: auto; padding: 5px 15px; font-size: 14px;">Logout</button>
-        </div>
-        <p>Instant Workout Generator</p>
-
-        <div class="controls">
-            <label>Target Area:</label>
-            <select id="focus">
-                <option value="full_body">Full Body</option>
-                <option value="legs">Legs</option>
-                <option value="push">Push (Chest/Triceps)</option>
-                <option value="pull">Pull (Back/Biceps)</option>
-            </select>
-
-            <label>Equipment:</label>
-            <select id="equipment">
-                <option value="bodyweight">Bodyweight</option>
-                <option value="dumbbells_only">Dumbbells Only</option>
-            </select>
-
-            <button id="generateBtn">Generate Workout</button>
-        </div>
-
-        <div id="result-area" class="hidden">
-            <h2 id="routine-title">...</h2>
+    <!-- APP VIEW (Main Application) -->
+    <div id="app-view" class="hidden">
+        <div class="app-layout">
             
-            <button id="saveWorkoutBtn" style="background-color: #ffc107; color: black;">⭐ Save This Workout</button>
-            <button id="viewSavedBtn" style="background-color: #007bff; margin-top: 10px;">View My Saved Workouts</button>
+            <!-- LEFT SIDE: Main Workout Generator -->
+            <div class="main-workout-area">
+                <div class="container">
+                    <div class="header-row">
+                        <h1>Spontaneity Fit</h1>
+                        <button id="logoutBtn" style="background-color: #dc3545; width: auto; padding: 5px 15px; font-size: 14px;">Logout</button>
+                    </div>
+                    <p>Instant Workout Generator</p>
 
-            <div id="progress-container" class="hidden">
-                <p>Workout Progress: <span id="progress-text">0%</span></p>
-                <div class="progress-bar-bg">
-                    <div id="progress-bar-fill"></div>
+                    <div class="controls">
+                        <label>Target Area:</label>
+                        <select id="focus">
+                            <option value="full_body">Full Body</option>
+                            <option value="legs">Legs</option>
+                            <option value="push">Push (Chest/Triceps)</option>
+                            <option value="pull">Pull (Back/Biceps)</option>
+                        </select>
+
+                        <label>Equipment:</label>
+                        <select id="equipment">
+                            <option value="bodyweight">Bodyweight</option>
+                            <option value="dumbbells_only">Dumbbells Only</option>
+                        </select>
+
+                        <button id="generateBtn">Generate Workout</button>
+                    </div>
+
+                    <div id="result-area" class="hidden">
+                        <h2 id="routine-title">...</h2>
+                        
+                        <button id="saveWorkoutBtn" style="background-color: #ffc107; color: black;">⭐ Save This Workout</button>
+
+                        <div id="progress-container" class="hidden">
+                            <p>Workout Progress: <span id="progress-text">0%</span></p>
+                            <div class="progress-bar-bg">
+                                <div id="progress-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <ul id="exercise-list"></ul>
+                    </div>
                 </div>
             </div>
 
-            <ul id="exercise-list"></ul>
-        </div>
-    </div>
+            <!-- RIGHT SIDE: Saved Workouts Sidebar -->
+            <div class="saved-workouts-sidebar">
+                <div class="container">
+                    <div class="saved-workouts-header">
+                        <h2>My Saved Workouts</h2>
+                        <span class="saved-count" id="saved-count">0</span>
+                    </div>
+                    <div id="saved-list"></div>
+                </div>
+            </div>
 
-    <div id="saved-workouts-area" class="container hidden" style="margin-top: 20px;">
-        <h2>My Saved Workouts</h2>
-        <div id="saved-list"></div>
-        <button id="closeSavedBtn" style="background-color: #6c757d;">Close</button>
+        </div>
     </div>
 
     <script src="app.js"></script>

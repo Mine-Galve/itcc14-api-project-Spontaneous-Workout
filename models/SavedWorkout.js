@@ -4,15 +4,13 @@ const mongoose = require('mongoose');
 const SavedWorkoutSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Links this workout to a specific User document
+    ref: 'User',
     required: true
   },
   title: {
     type: String,
     required: true
   },
-  // We snapshot the exercises so the workout stays the same 
-  // even if the original database changes
   exercises: [{
     name: String,
     sets: Number,
@@ -22,6 +20,14 @@ const SavedWorkoutSchema = new mongoose.Schema({
     musclesWorked: [String],
     gifUrl: String
   }],
+  progress: {
+    type: Number,
+    default: 0
+  },
+  completedExercises: {
+    type: [Number],
+    default: []
+  },
   savedAt: {
     type: Date,
     default: Date.now

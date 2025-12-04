@@ -1,6 +1,246 @@
 
 
-// Views (The two main screens)
+// Load Saved Workouts into Sidebar
+async function loadSavedWorkouts() {
+    if (!authToken) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/api/workouts/my-workouts`, {
+            headers: { 'x-auth-token': authToken }
+        });
+        const workouts = await res.json();
+        
+        // Update count
+        savedCount.innerText = workouts.length;
+        
+        savedList.innerHTML = '';
+        
+        if (workouts.length === 0) {
+            savedList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💪</div>
+                    <p>No saved workouts yet.<br>Generate and save your first workout!</p>
+                </div>
+            `;
+        } else {
+            workouts.forEach(w => {
+                const div = document.createElement('div');
+                div.className = 'saved-card';
+                
+                const progress = w.progress || 0;
+
+                div.innerHTML = `
+                    <div class="saved-card-header">
+                        <div class="saved-card-title">
+                            <h4>${w.title}</h4>
+                            <small>${new Date(w.savedAt).toLocaleDateString()}</small>
+                        </div>
+                        <button class="delete-btn" data-id="${w._id}" title="Delete workout">×</button>
+                    </div>
+                    <p class="saved-card-info">💪 ${w.exercises.length} exercises</p>
+                    <div class="saved-progress">
+                        <div class="saved-progress-text">Progress: ${progress}%</div>
+                        <div class="saved-progress-bar-bg">
+                            <div class="saved-progress-bar-fill" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                    <button class="load-saved-btn" data-id="${w._id}">Load Workout</button>
+                `;
+                
+                // Load button functionality
+                div.querySelector('.load-saved-btn').addEventListener('click', () => {
+                    currentExercises = w.exercises;
+                    currentWorkoutId = w._id;
+                    routineTitle.innerText = w.title;
+                    isWorkoutSaved = true;
+                    
+                    renderExerciseList(w.exercises);
+                    resultArea.classList.remove('hidden');
+                    
+                    // Reset progress for loaded workout
+                    resetProgressBar();
+                    
+                    // If workout has saved progress, restore it
+                    if (w.progress && w.completedExercises) {
+                        restoreProgress(w.completedExercises);
+                    }
+                    
+                    // Update save button
+                    saveWorkoutBtn.disabled = false;
+                    saveWorkoutBtn.innerText = "💾 Update Progress";
+                    saveWorkoutBtn.style.opacity = "1";
+                    
+                    // Scroll to workout
+                    resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+
+                // Delete button functionality
+                div.querySelector('.delete-btn').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to delete this workout?')) {
+                        await deleteWorkout(w._id);
+                    }
+                });
+
+                savedList.appendChild(div);
+            });
+        }
+    } catch (err) { 
+        console.error(err);
+        savedList.innerHTML = '<p class="empty-state">Error loading workouts</p>';
+    }
+}
+
+// Delete Workout Function
+async function deleteWorkout(workoutId) {
+    try {
+        const res = await fetch(`${API_URL}/api/workouts/${workoutId}`, {
+            method: 'DELETE',
+            headers: { 'x-auth-token': authToken }
+        });
+        
+        if (res.ok) {
+            alert('✅ Workout deleted successfully!');
+            
+            // If deleted workout is currently loaded, clear it
+            if (currentWorkoutId === workoutId) {
+                currentExercises = [];
+                currentWorkoutId = null;
+                isWorkoutSaved = false;
+                resultArea.classList.add('hidden');
+            }
+            
+            // Reload the list
+            loadSavedWorkouts();
+        } else {
+            throw new Error('Failed to delete');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error deleting workout');
+    }
+}
+
+// Update Workout Progress
+async function updateWorkoutProgress(workoutId) {
+    const checkboxes = document.querySelectorAll('.exercise-check');
+    const total = checkboxes.length;
+    const checked = document.querySelectorAll('.exercise-check:checked').length;
+    const progress = Math.round((checked / total) * 100);
+    
+    // Get indices of completed exercises
+    const completedExercises = [];
+    checkboxes.forEach((box, index) => {
+        if (box.checked) {
+            completedExercises.push(index);
+        }
+    });
+    
+    try {
+        const res = await fetch(`${API_URL}/api/workouts/${workoutId}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-auth-token': authToken 
+            },
+            body: JSON.stringify({ 
+                progress,
+                completedExercises 
+            })
+        });
+        
+        if (res.ok) {
+            alert('✅ Progress updated!');
+            loadSavedWorkouts(); // Refresh the sidebar
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error updating progress');
+    }
+}
+
+// Restore Progress from Saved Data
+function restoreProgress(completedExercises) {
+    if (!completedExercises || completedExercises.length === 0) return;
+    
+    const checkboxes = document.querySelectorAll('.exercise-check');
+    completedExercises.forEach(index => {
+        if (checkboxes[index]) {
+            checkboxes[index].checked = true;
+            checkboxes[index].closest('li').classList.add('completed');
+        }
+    });
+    
+    // Update progress bar
+    const total = checkboxes.length;
+    const checked = completedExercises.length;
+    const pct = Math.round((checked / total) * 100);
+    progressBar.style.width = `${pct}%`;
+    progressText.innerText = `${pct}%`;
+}// View Saved Workouts - FIX: Improved load functionality
+viewSavedBtn.addEventListener('click', async () => {
+    if (!authToken) {
+        alert("Please login to view saved workouts");
+        return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/api/workouts/my-workouts`, {
+            headers: { 'x-auth-token': authToken }
+        });
+        const workouts = await res.json();
+        
+        savedList.innerHTML = '';
+        
+        if (workouts.length === 0) {
+            savedList.innerHTML = '<p class="empty-state">📋 No saved workouts yet.<br>Generate and save your first workout!</p>';
+        } else {
+            workouts.forEach(w => {
+                const div = document.createElement('div');
+                div.className = 'saved-card';
+
+                div.innerHTML = `
+                    <div class="saved-card-header">
+                        <h4>${w.title}</h4>
+                        <small>${new Date(w.savedAt).toLocaleDateString()}</small>
+                    </div>
+                    <p class="saved-card-info">💪 ${w.exercises.length} exercises</p>
+                    <button class="load-saved-btn">Load Workout</button>
+                `;
+                
+                // FIX: Improved load button functionality
+                div.querySelector('.load-saved-btn').addEventListener('click', () => {
+                    currentExercises = w.exercises;
+                    routineTitle.innerText = w.title;
+                    isWorkoutSaved = true; // Mark as already saved
+                    
+                    renderExerciseList(w.exercises);
+                    resultArea.classList.remove('hidden');
+                    savedWorkoutsArea.classList.add('hidden');
+                    
+                    // Reset progress for loaded workout
+                    resetProgressBar();
+                    
+                    // Update save button for loaded workout
+                    saveWorkoutBtn.disabled = true;
+                    saveWorkoutBtn.innerText = "✓ Already Saved";
+                    saveWorkoutBtn.style.opacity = "0.6";
+                });
+
+                savedList.appendChild(div);
+            });
+        }
+        
+        savedWorkoutsArea.classList.remove('hidden');
+    } catch (err) { 
+        console.error(err);
+        alert("Error loading saved workouts");
+    }
+});
+
+closeSavedBtn.addEventListener('click', () => {
+    savedWorkoutsArea.classList.add('hidden');
+});// Views (The two main screens)
 const authView = document.getElementById('auth-view');
 const appView = document.getElementById('app-view');
 
@@ -19,25 +259,23 @@ const routineTitle = document.getElementById('routine-title');
 const exerciseList = document.getElementById('exercise-list');
 const resultArea = document.getElementById('result-area');
 const saveWorkoutBtn = document.getElementById('saveWorkoutBtn');
-const viewSavedBtn = document.getElementById('viewSavedBtn');
 
 // Progress Bar
 const progressBar = document.getElementById('progress-bar-fill');
 const progressText = document.getElementById('progress-text');
 const progressContainer = document.getElementById('progress-container');
 
-// Saved Workouts Modal
-const savedWorkoutsArea = document.getElementById('saved-workouts-area');
+// Saved Workouts
 const savedList = document.getElementById('saved-list');
-const closeSavedBtn = document.getElementById('closeSavedBtn');
+const savedCount = document.getElementById('saved-count');
 
 // State Variables
-let currentExercises = []; // Stores the generated workout for saving
-let authToken = localStorage.getItem('token'); // Gets token if user was already logged in
-let isWorkoutSaved = false; // Track if current workout is saved
+let currentExercises = [];
+let authToken = localStorage.getItem('token');
+let isWorkoutSaved = false;
+let currentWorkoutId = null; // Track which saved workout is loaded
 
-const API_URL = "https://spontaneity-fit-api.onrender.com"; 
-// Use "http://localhost:3000" if running locally
+const API_URL = "https://spontaneity-fit-api.onrender.com";
 
 // Run immediately on page load to decide which screen to show
 checkLoginState();
@@ -144,8 +382,8 @@ logoutBtn.addEventListener('click', () => {
     // Clean up current session data
     currentExercises = [];
     isWorkoutSaved = false;
+    currentWorkoutId = null;
     resultArea.classList.add('hidden');
-    savedWorkoutsArea.classList.add('hidden');
 });
 
 // GENERATE WORKOUT
@@ -165,7 +403,8 @@ generateBtn.addEventListener('click', async () => {
         // Store data for saving later
         currentExercises = data.exercises;
         routineTitle.innerText = data.routine_title;
-        isWorkoutSaved = false; // Reset saved state for new workout
+        isWorkoutSaved = false;
+        currentWorkoutId = null; // New workout, not loaded from saved
         
         // Render the list
         renderExerciseList(data.exercises);
@@ -173,7 +412,7 @@ generateBtn.addEventListener('click', async () => {
         // UI Updates
         resultArea.classList.remove('hidden');
         
-        // Reset Save Button - FIX: Enable button for new workout
+        // Reset Save Button
         saveWorkoutBtn.innerText = "⭐ Save This Workout";
         saveWorkoutBtn.disabled = false;
         saveWorkoutBtn.style.opacity = "1";
@@ -246,8 +485,9 @@ saveWorkoutBtn.addEventListener('click', async () => {
         return;
     }
 
-    if (isWorkoutSaved) {
-        alert("This workout is already saved!");
+    if (isWorkoutSaved && currentWorkoutId) {
+        // Update existing workout progress
+        await updateWorkoutProgress(currentWorkoutId);
         return;
     }
 
@@ -263,14 +503,25 @@ saveWorkoutBtn.addEventListener('click', async () => {
                 'Content-Type': 'application/json',
                 'x-auth-token': authToken 
             },
-            body: JSON.stringify({ title, exercises: currentExercises })
+            body: JSON.stringify({ 
+                title, 
+                exercises: currentExercises,
+                progress: 0 
+            })
         });
+        
+        const data = await res.json();
         
         if (res.ok) {
             isWorkoutSaved = true;
+            currentWorkoutId = data._id;
             alert("✅ Workout Saved Successfully!");
-            saveWorkoutBtn.innerText = "✓ Saved";
-            saveWorkoutBtn.style.opacity = "0.6";
+            saveWorkoutBtn.innerText = "💾 Update Progress";
+            saveWorkoutBtn.style.opacity = "1";
+            saveWorkoutBtn.disabled = false;
+            
+            // Reload saved workouts list
+            loadSavedWorkouts();
         } else {
             throw new Error("Failed to save");
         }
@@ -368,6 +619,12 @@ function attachProgressLogic() {
             // Update UI
             progressBar.style.width = `${pct}%`;
             progressText.innerText = `${pct}%`;
+            
+            // Update save button text if workout is saved
+            if (isWorkoutSaved && currentWorkoutId) {
+                saveWorkoutBtn.innerText = "💾 Update Progress";
+                saveWorkoutBtn.disabled = false;
+            }
             
             if (pct === 100) {
                 setTimeout(() => {
