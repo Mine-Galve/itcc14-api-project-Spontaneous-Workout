@@ -67,6 +67,9 @@ function checkLoginState() {
 
 function renderExerciseList(exercises) {
     exerciseList.innerHTML = '';
+    
+    console.log(`Rendering ${exercises.length} exercises`); // Debug log
+    
     exercises.forEach((exercise, index) => {
         const li = document.createElement('li');
         
@@ -98,6 +101,10 @@ function renderExerciseList(exercises) {
     });
 
     attachProgressLogic();
+    
+    // Log checkbox count after rendering
+    const checkboxCount = document.querySelectorAll('.exercise-check').length;
+    console.log(`Total checkboxes rendered: ${checkboxCount}`); // Debug log
 }
 
 function resetProgressBar() {
@@ -113,6 +120,9 @@ function resetProgressBar() {
 
 function attachProgressLogic() {
     const checkboxes = document.querySelectorAll('.exercise-check');
+    
+    console.log(`Attaching progress logic to ${checkboxes.length} checkboxes`); // Debug
+    
     checkboxes.forEach(box => {
         box.addEventListener('change', (e) => {
             const li = e.target.closest('li');
@@ -125,6 +135,8 @@ function attachProgressLogic() {
             const total = checkboxes.length;
             const checked = document.querySelectorAll('.exercise-check:checked').length;
             const pct = Math.round((checked / total) * 100);
+            
+            console.log(`Progress: ${checked}/${total} = ${pct}%`); // Debug
             
             progressBar.style.width = `${pct}%`;
             progressText.innerText = `${pct}%`;
@@ -168,11 +180,20 @@ async function loadSavedWorkouts() {
                 div.className = 'saved-card';
                 
                 const progress = w.progress || 0;
+                
+                // Add completed class if workout is 100% done
+                if (progress === 100) {
+                    div.classList.add('completed');
+                }
+
+                const completionBadge = progress === 100 
+                    ? '<span class="completion-badge">COMPLETED</span>' 
+                    : '';
 
                 div.innerHTML = `
                     <div class="saved-card-header">
                         <div class="saved-card-title">
-                            <h4>${w.title}</h4>
+                            <h4>${w.title}${completionBadge}</h4>
                             <small>${new Date(w.savedAt).toLocaleDateString()}</small>
                         </div>
                         <button class="delete-btn" data-id="${w._id}" title="Delete workout">×</button>

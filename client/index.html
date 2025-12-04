@@ -33,16 +33,26 @@
 
     <!-- APP VIEW (Main Application) -->
     <div id="app-view" class="hidden">
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav">
+            <div class="nav-content">
+                <h1 class="nav-title">💪 Spontaneity Fit</h1>
+                <button id="logoutBtn" class="logout-btn">
+                    <span>Logout</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
+                        <path d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+
         <div class="app-layout">
             
             <!-- LEFT SIDE: Main Workout Generator -->
             <div class="main-workout-area">
                 <div class="container">
-                    <div class="header-row">
-                        <h1>Spontaneity Fit</h1>
-                        <button id="logoutBtn" style="background-color: #dc3545; width: auto; padding: 5px 15px; font-size: 14px;">Logout</button>
-                    </div>
-                    <p>Instant Workout Generator</p>
+                    <p class="subtitle">Instant Workout Generator</p>
 
                     <div class="controls">
                         <label>Target Area:</label>
