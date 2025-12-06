@@ -1,0 +1,482 @@
+openapi: 3.0.0
+info:
+  title: Spontaneity Fit API
+  description: |
+    A RESTful API for generating randomized workout routines based on user preferences.
+    This API eliminates workout decision fatigue by providing instant, customized workout plans.
+    
+    **Features:**
+    - User authentication with JWT tokens
+    - Random workout generation based on focus area and equipment
+    - Save and track workout progress
+    - Manage personal workout library
+    
+    **Base URL (Production):** https://spontaneity-fit-api.onrender.com
+    
+    **Base URL (Local Development):** http://localhost:3000
+  version: 1.0.0
+  contact:
+    name: Spontaneity Fit Team
+    email: support@spontaneityfit.com
+  license:
+    name: ISC
+
+servers:
+  - url: https://spontaneity-fit-api.onrender.com
+    description: Production server (Render)
+  - url: http://localhost:3000
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User registration and login endpoints
+  - name: Workouts
+    description: Workout generation and management
+  - name: Saved Workouts
+    description: Save, retrieve, update, and delete user workouts
+
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account and receive an authentication token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                  description: Unique username for the account
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                  description: Valid email address
+                password:
+                  type: string
+                  format: password
+                  example: securePassword123
+                  description: Password (will be hashed and salted)
+      responses:
+        '200':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    description: JWT authentication token (valid for 10 hours)
+        '400':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                msg: User already exists
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and receive JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: securePassword123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    description: JWT authentication token (valid for 10 hours)
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                msg: Invalid Credentials
+        '500':
+          description: Server error
+
+  /api/v1/generate-workout:
+    get:
+      tags:
+        - Workouts
+      summary: Generate random workout
+      description: |
+        Generate a randomized workout routine based on focus area and equipment.
+        Returns 5 random exercises matching the criteria.
+        
+        **No authentication required** - This is a public endpoint.
+      parameters:
+        - name: focus
+          in: query
+          description: Target muscle group or body area
+          required: false
+          schema:
+            type: string
+            enum:
+              - full_body
+              - legs
+              - push
+              - pull
+            example: legs
+        - name: equipment
+          in: query
+          description: Available equipment type
+          required: false
+          schema:
+            type: string
+            enum:
+              - bodyweight
+              - dumbbells_only
+            example: bodyweight
+      responses:
+        '200':
+          description: Workout generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutResponse'
+        '404':
+          description: No exercises found matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                msg: No exercises found matching your criteria.
+        '500':
+          description: Server error
+
+  /api/workouts/save:
+    post:
+      tags:
+        - Saved Workouts
+      summary: Save a workout
+      description: Save a generated workout to user's library
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - exercises
+              properties:
+                title:
+                  type: string
+                  example: Morning Leg Day
+                  description: Custom title for the workout
+                exercises:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Exercise'
+                progress:
+                  type: number
+                  example: 0
+                  description: Initial progress percentage (0-100)
+      responses:
+        '200':
+          description: Workout saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedWorkout'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                msg: No token, authorization denied
+        '500':
+          description: Server error
+
+  /api/workouts/my-workouts:
+    get:
+      tags:
+        - Saved Workouts
+      summary: Get all saved workouts
+      description: Retrieve all workouts saved by the authenticated user (sorted by most recent)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of saved workouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedWorkout'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+
+  /api/workouts/{id}:
+    put:
+      tags:
+        - Saved Workouts
+      summary: Update workout progress
+      description: Update the completion progress of a saved workout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Workout ID (MongoDB ObjectId)
+          schema:
+            type: string
+            example: 674c1234567890abcdef1234
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - progress
+                - completedExercises
+              properties:
+                progress:
+                  type: number
+                  example: 60
+                  description: Progress percentage (0-100)
+                completedExercises:
+                  type: array
+                  items:
+                    type: number
+                  example: [0, 1, 2]
+                  description: Array of completed exercise indices
+      responses:
+        '200':
+          description: Progress updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedWorkout'
+        '401':
+          description: Not authenticated or not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                msg: Workout not found
+        '500':
+          description: Server error
+
+    delete:
+      tags:
+        - Saved Workouts
+      summary: Delete a workout
+      description: Permanently delete a saved workout from user's library
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Workout ID (MongoDB ObjectId)
+          schema:
+            type: string
+            example: 674c1234567890abcdef1234
+      responses:
+        '200':
+          description: Workout deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Workout removed
+        '401':
+          description: Not authenticated or not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Workout not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: apiKey
+      in: header
+      name: x-auth-token
+      description: |
+        JWT token received from `/api/auth/register` or `/api/auth/login`.
+        
+        **Example:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+        
+        **Token expires after 10 hours.**
+
+  schemas:
+    Exercise:
+      type: object
+      required:
+        - name
+        - sets
+        - reps
+      properties:
+        name:
+          type: string
+          example: Push Up
+          description: Exercise name
+        sets:
+          type: number
+          example: 3
+          description: Number of sets
+        reps:
+          type: string
+          example: 10-12
+          description: Number of repetitions (can be a range)
+        instructions:
+          type: string
+          example: 1. Start in plank position. 2. Lower chest to ground. 3. Push back up.
+          description: Step-by-step instructions
+        difficulty:
+          type: string
+          enum:
+            - beginner
+            - intermediate
+            - advanced
+          example: beginner
+          description: Difficulty level
+        musclesWorked:
+          type: array
+          items:
+            type: string
+          example: [chest, triceps, shoulders]
+          description: List of muscles targeted
+        gifUrl:
+          type: string
+          format: uri
+          example: https://media.giphy.com/media/.../giphy.gif
+          description: URL to animated GIF demonstration
+
+    WorkoutResponse:
+      type: object
+      properties:
+        routine_title:
+          type: string
+          example: legs bodyweight Workout
+          description: Generated workout title
+        exercises:
+          type: array
+          items:
+            $ref: '#/components/schemas/Exercise'
+          description: Array of 5 randomly selected exercises
+
+    SavedWorkout:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 674c1234567890abcdef1234
+          description: MongoDB ObjectId
+        user:
+          type: string
+          example: 674b9876543210fedcba9876
+          description: User ID (MongoDB ObjectId)
+        title:
+          type: string
+          example: Morning Leg Day
+          description: Workout title
+        exercises:
+          type: array
+          items:
+            $ref: '#/components/schemas/Exercise'
+          description: List of exercises in the workout
+        progress:
+          type: number
+          example: 60
+          description: Completion progress (0-100)
+        completedExercises:
+          type: array
+          items:
+            type: number
+          example: [0, 1, 2]
+          description: Indices of completed exercises
+        savedAt:
+          type: string
+          format: date-time
+          example: 2024-12-06T10:30:00.000Z
+          description: Timestamp when workout was saved
+
+    Error:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: Error message description
+          description: Human-readable error message
