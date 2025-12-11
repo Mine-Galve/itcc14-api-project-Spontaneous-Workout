@@ -1,531 +1,944 @@
-Spontaneity Fit Navigation
+# Spontaneity Fit - Complete Project Documentation
 
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Project Structure](#project-structure)
+3. [API Routes & Endpoints](#api-routes--endpoints)
+4. [Detailed File Explanations](#detailed-file-explanations)
+5. [Complete Application Flow](#complete-application-flow)
+6. [Key Technical Concepts](#key-technical-concepts)
+7. [Presentation Guide](#presentation-guide)
 
-Site: Xavier University 
-Course: ITCC14-API-PROJECT - Building a RESTful API
-Book: Spontaneity Fit: Backend API Lecture
+---
 
+## Project Overview
 
-Printed by:Mine GalveDate:Sunday, 16 November 2025, 10:54 PM
+**Project Name:** Spontaneity Fit  
+**Type:** Full-Stack Web Application with Authentication  
+**Purpose:** Instant workout generator with user accounts and workout tracking  
+**Problem Solved:** Many people struggle with workout monotony and don't know what exercises to do at the gym. They also need a way to track their progress.  
+**Solution:** A RESTful API that generates randomized, customized workout routines based on user preferences (target area and available equipment), with user authentication and the ability to save and track workout progress.
 
+### Technology Stack
+- **Frontend:** HTML, CSS, JavaScript
+- **Backend:** Node.js with Express.js
+- **Database:** MongoDB with Mongoose
+- **Authentication:** JWT (JSON Web Tokens) with crypto-based password hashing
+- **Deployment:** Render.com (Backend), MongoDB Atlas (Database)
 
+---
 
+## Project Structure
 
-
-
-
-
-Spontaneity Fit - Complete Project Documentation
-Table of Contents
-
-Project Overview
-Project Structure
-Detailed File Explanations
-Complete Application Flow
-Key Technical Concepts
-Presentation Guide
-
-
-Project Overview
-Project Name: Spontaneity Fit
-Type: Full-Stack Web Application
-Purpose: Instant workout generator that eliminates decision fatigue
-Problem Solved: Many people struggle with workout monotony and don't know what exercises to do at the gym.
-Solution: A RESTful API that generates randomized, customized workout routines based on user preferences (target area and available equipment).
-Technology Stack:
-
-Frontend: HTML, CSS, JavaScript
-Backend: Node.js with Express.js
-Database: MongoDB with Mongoose
-Deployment: Render.com (Backend), MongoDB Atlas (Database)
-
-
-Project Structure
+```
 /SpontaneityFit-API
   |-- /client              ← Frontend (what users see)
-  |   |-- index.html       ← The webpage structure
-  |   |-- style.css        ← Makes it look good
-  |   |-- app.js           ← Handles button clicks and API calls
+  |   |-- index.html       ← The webpage structure with auth & app views
+  |   |-- style.css        ← Styling including auth forms & saved workouts
+  |   |-- app.js           ← Handles auth, workout generation & saving
   |
   |-- /models              ← Database blueprints
   |   |-- Exercise.js      ← Defines what an exercise looks like
+  |   |-- User.js          ← Defines user account structure
+  |   |-- SavedWorkout.js  ← Defines saved workout structure
   |
-  |-- .env                 ← Secret configuration (database password)
+  |-- /middleware          ← Authentication middleware
+  |   |-- auth.js          ← JWT token verification
+  |
+  |-- .env                 ← Secret configuration (database password, JWT secret)
   |-- .gitignore           ← Tells Git what NOT to upload
   |-- db.js                ← Connects to MongoDB database
   |-- index.js             ← Main server (the brain of the backend)
-  |-- seed.js              ← Populates database with exercises
-  |-- seed-enhanced.js     ← Populates with MORE exercises + instructions
+  |-- seed-enhanced.js     ← Populates database with 30+ exercises
   |-- package.json         ← Lists all dependencies (libraries needed)
+```
 
-Detailed File Explanations
-1. /client/index.html - The User Interface
-Purpose: Creates the visual structure of your webpage
-What it does:
+---
 
-Creates the title "Spontaneity Fit"
-Creates dropdown menus for:
+## API Routes & Endpoints
 
-Target Area (Full Body, Legs, Push, Pull)
-Equipment (Bodyweight, Dumbbells Only)
+### Authentication Routes
 
+#### 1. **POST /api/auth/register**
+Creates a new user account and returns a JWT token.
 
-Creates the "Generate Workout" button
-Creates a hidden results area that shows workouts
-
-Key HTML Elements:
-html<select id="focus">           <!-- Dropdown for target area -->
-<select id="equipment">       <!-- Dropdown for equipment type -->
-<button id="generateBtn">     <!-- Button to generate workout -->
-<div id="result-area">        <!-- Where workouts appear -->
-Analogy: The skeleton/structure of a house - it defines where everything goes.
-
-2. /client/style.css - The Styling
-Purpose: Makes the app look beautiful and professional
-What it does:
-
-Sets colors, fonts, and spacing
-Makes the container centered with a white background
-Styles the green "Generate Workout" button
-Creates the workout card design with green left border
-Adds difficulty badges (beginner = green, intermediate = yellow, advanced = red)
-Makes the instruction dropdown collapsible
-
-Key CSS Classes:
-css.container          /* White box in center of page */
-button              /* Green button styling */
-li                  /* Individual exercise cards */
-.difficulty         /* Color-coded difficulty badges */
-.instructions       /* Collapsible instruction section */
-Analogy: The paint, furniture, and decoration of a house - makes it look good.
-
-3. /client/app.js - The Frontend Logic
-Purpose: Handles user interactions and communicates with the backend API
-Step-by-Step Flow:
-Step 1: Wait for Button Click
-javascriptgenerateBtn.addEventListener('click', async () => {
-When user clicks "Generate Workout", this function runs
-Step 2: Get User Choices
-javascriptconst focus = document.getElementById('focus').value;
-const equipment = document.getElementById('equipment').value;
-Reads what the user selected (e.g., "legs" + "bodyweight")
-Step 3: Update Button State
-javascriptgenerateBtn.innerText = "Generating...";
-generateBtn.disabled = true;
-Shows user that something is happening
-Step 4: Call the API
-javascriptconst response = await fetch(`${API_URL}?focus=${focus}&equipment=${equipment}`);
-Sends request to backend: "Give me leg bodyweight exercises"
-Step 5: Process the Response
-javascriptconst data = await response.json();
-Converts the API response into JavaScript object
-Step 6: Display the Workout
-javascriptdata.exercises.forEach((exercise, index) => {
-    // Creates HTML for each exercise
-});
-Loops through each exercise and displays it on the page
-Step 7: Handle Errors
-javascriptcatch (error) {
-    alert("Could not get workout...");
+**Request Body:**
+```json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "securePassword123"
 }
-Shows friendly error message if something goes wrong
-Analogy: The electrical wiring in a house - makes buttons work and connects everything.
+```
 
-4. /models/Exercise.js - The Data Blueprint
-Purpose: Defines the structure of an exercise in the database
-Schema Definition:
-javascriptconst ExerciseSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  focus_tag: { type: String, required: true },
-  equipment_tag: { type: String, required: true },
-  instructions: { type: String, required: true },
-  difficulty: { type: String, default: 'beginner' },
-  musclesWorked: [{ type: String }]
+**Response (Success - 200):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response (Error - 400):**
+```json
+{
+  "msg": "User already exists"
+}
+```
+
+**How it works:**
+1. Checks if email already exists in database
+2. Hashes password using crypto (salt + HMAC SHA-256)
+3. Saves user to database
+4. Generates JWT token valid for 10 hours
+5. Returns token to frontend
+
+---
+
+#### 2. **POST /api/auth/login**
+Authenticates existing user and returns JWT token.
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "securePassword123"
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response (Error - 400):**
+```json
+{
+  "msg": "Invalid Credentials"
+}
+```
+
+**How it works:**
+1. Finds user by email
+2. Splits stored password into salt and hash
+3. Hashes input password with same salt
+4. Compares hashes
+5. If match, generates new JWT token
+6. Returns token to frontend
+
+---
+
+### Workout Routes
+
+#### 3. **GET /api/v1/generate-workout**
+Generates a random workout based on user preferences. **No authentication required.**
+
+**Query Parameters:**
+- `focus` (optional): `full_body`, `legs`, `push`, `pull`
+- `equipment` (optional): `bodyweight`, `dumbbells_only`
+
+**Example Request:**
+```
+GET /api/v1/generate-workout?focus=legs&equipment=bodyweight
+```
+
+**Response (Success - 200):**
+```json
+{
+  "routine_title": "legs bodyweight Workout",
+  "exercises": [
+    {
+      "name": "Air Squat",
+      "sets": 3,
+      "reps": "10-12",
+      "instructions": "1. Stand with feet shoulder-width...",
+      "difficulty": "beginner",
+      "musclesWorked": ["quads", "glutes", "hamstrings"],
+      "gifUrl": "https://media.giphy.com/..."
+    }
+    // ... 4 more exercises
+  ]
+}
+```
+
+**Response (Error - 404):**
+```json
+{
+  "msg": "No exercises found matching your criteria."
+}
+```
+
+**How it works:**
+1. Reads `focus` and `equipment` from query parameters
+2. Builds MongoDB filter based on parameters
+3. Uses MongoDB aggregation:
+   - `$match`: Filters exercises matching criteria
+   - `$sample`: Randomly selects 5 exercises
+4. Formats each exercise with default sets/reps
+5. Creates routine title
+6. Returns JSON response
+
+---
+
+### Saved Workout Routes (Authentication Required)
+
+#### 4. **POST /api/workouts/save**
+Saves a generated workout to user's library. **Requires JWT token.**
+
+**Headers:**
+```
+x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Request Body:**
+```json
+{
+  "title": "Morning Leg Day",
+  "exercises": [
+    {
+      "name": "Air Squat",
+      "sets": 3,
+      "reps": "10-12",
+      "instructions": "...",
+      "difficulty": "beginner",
+      "musclesWorked": ["quads", "glutes"],
+      "gifUrl": "https://..."
+    }
+    // ... more exercises
+  ],
+  "progress": 0
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "_id": "674c1234567890abcdef1234",
+  "user": "674b9876543210fedcba9876",
+  "title": "Morning Leg Day",
+  "exercises": [...],
+  "progress": 0,
+  "completedExercises": [],
+  "savedAt": "2024-12-06T10:30:00.000Z"
+}
+```
+
+**How it works:**
+1. `auth` middleware verifies JWT token
+2. Extracts user ID from token
+3. Creates new SavedWorkout document
+4. Saves to database with user reference
+5. Returns saved workout with ID
+
+---
+
+#### 5. **GET /api/workouts/my-workouts**
+Retrieves all workouts saved by authenticated user. **Requires JWT token.**
+
+**Headers:**
+```
+x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Response (Success - 200):**
+```json
+[
+  {
+    "_id": "674c1234567890abcdef1234",
+    "user": "674b9876543210fedcba9876",
+    "title": "Morning Leg Day",
+    "exercises": [...],
+    "progress": 60,
+    "completedExercises": [0, 1, 2],
+    "savedAt": "2024-12-06T10:30:00.000Z"
+  },
+  {
+    "_id": "674c5678901234abcdef5678",
+    "user": "674b9876543210fedcba9876",
+    "title": "Push Workout",
+    "exercises": [...],
+    "progress": 100,
+    "completedExercises": [0, 1, 2, 3, 4],
+    "savedAt": "2024-12-05T09:15:00.000Z"
+  }
+]
+```
+
+**How it works:**
+1. Verifies JWT token via middleware
+2. Queries SavedWorkout collection for user's workouts
+3. Sorts by `savedAt` descending (most recent first)
+4. Returns array of all saved workouts
+
+---
+
+#### 6. **PUT /api/workouts/:id**
+Updates progress and completed exercises for a saved workout. **Requires JWT token.**
+
+**Headers:**
+```
+x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**URL Parameter:**
+- `id`: MongoDB ObjectId of the workout
+
+**Example Request:**
+```
+PUT /api/workouts/674c1234567890abcdef1234
+```
+
+**Request Body:**
+```json
+{
+  "progress": 60,
+  "completedExercises": [0, 1, 2]
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "_id": "674c1234567890abcdef1234",
+  "user": "674b9876543210fedcba9876",
+  "title": "Morning Leg Day",
+  "exercises": [...],
+  "progress": 60,
+  "completedExercises": [0, 1, 2],
+  "savedAt": "2024-12-06T10:30:00.000Z"
+}
+```
+
+**Response (Error - 401):**
+```json
+{
+  "msg": "Not authorized"
+}
+```
+
+**Response (Error - 404):**
+```json
+{
+  "msg": "Workout not found"
+}
+```
+
+**How it works:**
+1. Verifies JWT token
+2. Finds workout by ID
+3. Checks if workout belongs to authenticated user
+4. Updates `progress` and `completedExercises` fields
+5. Saves and returns updated workout
+
+---
+
+#### 7. **DELETE /api/workouts/:id**
+Permanently deletes a saved workout. **Requires JWT token.**
+
+**Headers:**
+```
+x-auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**URL Parameter:**
+- `id`: MongoDB ObjectId of the workout
+
+**Example Request:**
+```
+DELETE /api/workouts/674c1234567890abcdef1234
+```
+
+**Response (Success - 200):**
+```json
+{
+  "msg": "Workout removed"
+}
+```
+
+**Response (Error - 401):**
+```json
+{
+  "msg": "Not authorized"
+}
+```
+
+**How it works:**
+1. Verifies JWT token
+2. Finds workout by ID
+3. Verifies workout belongs to user
+4. Deletes workout from database
+5. Returns confirmation message
+
+---
+
+## Detailed File Explanations
+
+### 1. /models/User.js - User Account Structure
+
+**Purpose:** Defines the MongoDB schema for user accounts.
+
+```javascript
+const UserSchema = new mongoose.Schema({
+  username: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    trim: true 
+  },
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    trim: true 
+  },
+  password: { 
+    type: String, 
+    required: true  // Stored as "salt:hash"
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  }
 });
-Field Explanations:
+```
 
-name: Exercise name (e.g., "Push Up")
-focus_tag: What it targets ("push", "pull", "legs", "full_body")
-equipment_tag: What equipment needed ("bodyweight", "dumbbells_only")
-instructions: Step-by-step how to do it
-difficulty: Skill level ("beginner", "intermediate", "advanced")
-musclesWorked: Array of muscles used (["chest", "triceps", "shoulders"])
+**Field Explanations:**
+- **username:** Unique identifier for user (must be unique)
+- **email:** User's email address (must be unique, used for login)
+- **password:** Hashed password in format "salt:hash"
+- **createdAt:** Timestamp of account creation
 
-Analogy: A blueprint/template - every exercise MUST follow this structure.
+**Security Note:** Passwords are NEVER stored in plain text. They're hashed using crypto with a random salt.
 
-5. db.js - Database Connection
-Purpose: Establishes connection to MongoDB database
-How it Works:
-javascriptconst connectDB = async () => {
+---
+
+### 2. /models/SavedWorkout.js - Saved Workout Structure
+
+**Purpose:** Defines the MongoDB schema for user's saved workouts.
+
+```javascript
+const SavedWorkoutSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
+  },
+  exercises: [{
+    name: String,
+    sets: Number,
+    reps: String,
+    instructions: String,
+    difficulty: String,
+    musclesWorked: [String],
+    gifUrl: String
+  }],
+  progress: {
+    type: Number,
+    default: 0  // Percentage (0-100)
+  },
+  completedExercises: {
+    type: [Number],
+    default: []  // Array of exercise indices
+  },
+  savedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+```
+
+**Field Explanations:**
+- **user:** Reference to User document (links workout to user)
+- **title:** Workout name/title
+- **exercises:** Array of exercise objects (embedded documents)
+- **progress:** Completion percentage (0-100)
+- **completedExercises:** Array of indices of completed exercises
+- **savedAt:** Timestamp when workout was saved
+
+---
+
+### 3. /middleware/auth.js - JWT Authentication Middleware
+
+**Purpose:** Verifies JWT tokens to protect routes.
+
+```javascript
+module.exports = function(req, res, next) {
+  // 1. Get token from header
+  const token = req.header('x-auth-token');
+
+  // 2. Check if no token
+  if (!token) {
+    return res.status(401).json({ msg: 'No token, authorization denied' });
+  }
+
+  // 3. Verify token
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected successfully!');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded.user;
+    next();
   } catch (err) {
-    console.error(`MongoDB Connection Error: ${err.message}`);
-    process.exit(1);
+    res.status(401).json({ msg: 'Token is not valid' });
   }
 };
-Step-by-step:
+```
 
-Reads the connection string from .env file (keeps password secret)
-Attempts to connect to MongoDB Atlas (cloud database)
-If successful: Prints "MongoDB Connected successfully!"
-If fails: Shows error and stops the server
+**How it works:**
+1. Extracts token from `x-auth-token` header
+2. Returns 401 if no token provided
+3. Verifies token using JWT_SECRET from .env
+4. Decodes token to get user ID
+5. Attaches user info to request object
+6. Calls `next()` to proceed to route handler
+7. Returns 401 if token is invalid/expired
 
-Analogy: The plumbing that connects your house to the city water supply.
-
-6. .env - Secret Configuration
-Purpose: Stores sensitive information (passwords, API keys)
-Contents:
-MONGO_URI=mongodb+srv://username:password@cluster...
-Why it's important:
-
-✅ Keeps database password secret
-✅ Different settings for local vs. production
-✅ NOT uploaded to GitHub (protected by .gitignore)
-
-Analogy: The safe where you keep your house keys.
-
-7. .gitignore - Protection
-Purpose: Tells Git what NOT to upload to GitHub
-Contents:
-node_modules
-.env
-Why:
-
-node_modules: Huge folder (thousands of files) - can be reinstalled
-.env: Contains secrets - NEVER upload passwords to public GitHub
-
-Analogy: A "Do Not Disturb" sign - keeps private things private.
-
-8. index.js - The Main Server (MOST IMPORTANT)
-Purpose: The heart of your backend - handles all API requests
-Section 1: Setup & Imports
-javascriptconst express = require('express');
-const connectDB = require('./db');
-const Exercise = require('./models/Exercise');
-
-Imports all necessary tools
-Express: Web server framework
-connectDB: Function to connect to database
-Exercise: Model for exercises
-
-Section 2: Initialize
-javascriptconnectDB();
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-Connects to database
-Creates Express app
-CORS: Allows frontend to talk to backend
-express.json(): Allows reading JSON data
-
-Section 3: Serve Frontend
-javascriptapp.use(express.static(path.join(__dirname, 'client')));
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'index.html'));
+**Usage in routes:**
+```javascript
+app.post('/api/workouts/save', auth, async (req, res) => {
+  // req.user.id is now available
+  const userId = req.user.id;
 });
+```
 
-Serves static files (HTML, CSS, JS)
-When someone visits /, send them index.html
+---
 
-Section 4: API Endpoint (THE MAIN FEATURE)
-The Core Function:
-javascriptapp.get('/api/v1/generate-workout', async (req, res) => {
-What happens inside:
-Step 1: Get user input
-javascriptconst { focus, equipment } = req.query;
-Reads URL parameters: ?focus=legs&equipment=bodyweight
-Step 2: Build database filter
-javascriptconst filter = {};
-if (focus) filter.focus_tag = focus;
-if (equipment) filter.equipment_tag = equipment;
-Creates filter: "Find exercises where focus_tag=legs AND equipment_tag=bodyweight"
-Step 3: Query database
-javascriptconst exercises = await Exercise.aggregate([
-  { $match: filter },
-  { $sample: { size: 5 } }
-]);
+### 4. /client/app.js - Updated Frontend Logic
 
-$match: Find exercises matching the filter
-$sample: Randomly pick 5 exercises
-This ensures variety - different workout every time!
+**New State Variables:**
+```javascript
+let authToken = localStorage.getItem('token');
+let isWorkoutSaved = false;
+let currentWorkoutId = null;
+```
 
-Step 4: Check if exercises found
-javascriptif (!exercises || exercises.length === 0) {
-  return res.status(404).json({ msg: 'No exercises found...' });
-}
-If no exercises match, send error message
-Step 5: Format the response
-javascriptconst formattedExercises = exercises.map((ex) => {
-  return {
-    name: ex.name,
-    sets: 3,
-    reps: '10-12',
-    instructions: ex.instructions,
-    difficulty: ex.difficulty,
-    musclesWorked: ex.musclesWorked
-  };
-});
-Adds sets/reps to each exercise and provides defaults if data is missing
-Step 6: Create workout title
-javascriptconst routineTitle = `${focus || 'Full Body'} ${equipment || ''} Workout`.trim();
-Creates title like: "Legs Bodyweight Workout"
-Step 7: Send response
-javascriptres.json({
-  routine_title: routineTitle,
-  exercises: formattedExercises,
-});
-Sends JSON back to frontend
-Section 5: Start Server
-javascriptconst PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-Starts server on port 3000 (local) or whatever Render assigns
-Analogy: The restaurant kitchen - takes orders (requests) and prepares food (responses).
+**Key Functions:**
 
-9. seed.js - Original Database Populator
-Purpose: Adds initial exercises to database
-How it Works:
-javascriptconst sampleExercises = [
-  { name: 'Push Up', focus_tag: 'push', equipment_tag: 'bodyweight' },
-  // ... 5 more exercises
-];
+#### checkLoginState()
+- Checks if user has valid token in localStorage
+- Shows auth view or app view accordingly
+- Loads saved workouts if authenticated
 
-const importData = async () => {
-  await connectDB();
-  await Exercise.deleteMany();        // Clear old data
-  await Exercise.insertMany(sampleExercises);  // Add new data
-  console.log('Data Imported Successfully!');
-};
-Analogy: Stocking the warehouse with initial inventory.
-
-10. seed-enhanced.js - Enhanced Database Populator
-Purpose: Same as seed.js but with 30+ exercises, instructions, difficulty levels
-Key Differences:
-
-More exercises (30+ vs 6)
-Includes step-by-step instructions
-Includes difficulty levels
-Includes muscles worked
-
-Analogy: Upgraded warehouse with more detailed inventory.
-
-11. package.json - Project Configuration
-Purpose: Lists all dependencies and project info
-Key Dependencies:
-json{
-  "dependencies": {
-    "cors": "^2.8.5",         // Allows cross-origin requests
-    "dotenv": "^17.2.3",      // Reads .env files
-    "express": "^5.1.0",      // Web server framework
-    "mongoose": "^8.19.4"     // MongoDB database library
+#### Login Handler
+```javascript
+loginBtn.addEventListener('click', async () => {
+  const res = await fetch(`${API_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  
+  if (data.token) {
+    localStorage.setItem('token', data.token);
+    authToken = data.token;
+    checkLoginState();
   }
+});
+```
+
+#### Register Handler
+```javascript
+registerBtn.addEventListener('click', async () => {
+  const res = await fetch(`${API_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password })
+  });
+  // Similar to login...
+});
+```
+
+#### Save Workout Handler
+```javascript
+saveWorkoutBtn.addEventListener('click', async () => {
+  const res = await fetch(`${API_URL}/api/workouts/save`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-auth-token': authToken 
+    },
+    body: JSON.stringify({ 
+      title, 
+      exercises: currentExercises,
+      progress: 0 
+    })
+  });
+});
+```
+
+#### Load Saved Workouts
+```javascript
+async function loadSavedWorkouts() {
+  const res = await fetch(`${API_URL}/api/workouts/my-workouts`, {
+    headers: { 'x-auth-token': authToken }
+  });
+  const workouts = await res.json();
+  // Render workouts in sidebar...
 }
-Analogy: Shopping list - tells npm install what to download.
+```
 
-Complete Application Flow
-Frontend → Backend → Database → Backend → Frontend
-1. USER CLICKS "Generate Workout"
-   ↓
-2. app.js reads dropdown selections
-   (focus: "legs", equipment: "bodyweight")
-   ↓
-3. app.js sends HTTP request to API:
-   GET /api/v1/generate-workout?focus=legs&equipment=bodyweight
-   ↓
-4. Render server receives request
-   ↓
-5. index.js processes the request:
-   - Reads query parameters
-   - Builds database filter
-   ↓
-6. index.js queries MongoDB:
-   "Find exercises where focus_tag='legs' AND equipment_tag='bodyweight'"
-   ↓
-7. MongoDB searches through exercises collection
-   ↓
-8. MongoDB returns matching exercises
-   ↓
-9. index.js randomly selects 5 exercises
-   ↓
-10. index.js formats the data:
-    - Adds sets (3)
-    - Adds reps (10-12)
-    - Includes instructions
-    - Includes difficulty
-    ↓
-11. index.js sends JSON response back to frontend
-    ↓
-12. app.js receives the data
-    ↓
-13. app.js creates HTML for each exercise
-    ↓
-14. Browser displays the workout to user
+---
 
-Key Technical Concepts
-1. REST API
+### 5. /client/index.html - Dual View Structure
 
-REpresentational State Transfer
-Way for frontend and backend to communicate
-Uses HTTP methods (GET, POST, PUT, DELETE)
-Your API: GET /api/v1/generate-workout
+**Auth View (Login/Register):**
+```html
+<div id="auth-view" class="container auth-container">
+  <div id="login-form">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+  </div>
+  
+  <div id="register-form" class="hidden">
+    <input type="text" id="reg-username" placeholder="Username">
+    <input type="email" id="reg-email" placeholder="Email">
+    <input type="password" id="reg-password" placeholder="Password">
+    <button id="registerBtn">Create Account</button>
+  </div>
+</div>
+```
 
-2. Full-Stack Application
+**App View (Main Application):**
+```html
+<div id="app-view" class="hidden">
+  <nav class="top-nav">
+    <h1>💪 Spontaneity Fit</h1>
+    <button id="logoutBtn">Logout</button>
+  </nav>
 
-Frontend: HTML, CSS, JavaScript (what users see)
-Backend: Node.js + Express (server logic)
-Database: MongoDB (stores exercise data)
+  <div class="app-layout">
+    <!-- Left: Workout Generator -->
+    <div class="main-workout-area">
+      <!-- Dropdowns, Generate button, Results -->
+    </div>
 
-3. Environment Variables
+    <!-- Right: Saved Workouts Sidebar -->
+    <div class="saved-workouts-sidebar">
+      <div id="saved-list"></div>
+    </div>
+  </div>
+</div>
+```
 
-Keeps secrets safe (passwords, API keys)
-Different values for local vs production
-Stored in .env, read by dotenv package
+---
 
-4. Database Aggregation
+## Complete Application Flow
 
-$match: Filters exercises based on criteria
-$sample: Randomly selects exercises
-Ensures variety in workouts
+### User Registration/Login Flow
+```
+1. User visits site → Shows auth view
+2. User fills registration form
+3. Frontend sends POST to /api/auth/register
+4. Backend:
+   - Checks if user exists
+   - Hashes password
+   - Creates user document
+   - Generates JWT token
+5. Frontend receives token
+6. Stores token in localStorage
+7. Switches to app view
+8. Loads user's saved workouts
+```
 
-5. CORS (Cross-Origin Resource Sharing)
+### Generate & Save Workout Flow
+```
+1. User selects focus and equipment
+2. Clicks "Generate Workout"
+3. Frontend sends GET to /api/v1/generate-workout
+4. Backend:
+   - Filters exercises
+   - Randomly selects 5
+   - Formats response
+5. Frontend displays exercises
+6. User clicks "Save This Workout"
+7. Frontend sends POST to /api/workouts/save with JWT token
+8. Backend:
+   - Verifies token
+   - Creates SavedWorkout document
+   - Links to user
+9. Frontend receives saved workout ID
+10. Updates sidebar with new workout
+```
 
-Allows frontend to communicate with backend
-Security feature in browsers
-app.use(cors()) enables it
+### Track Progress Flow
+```
+1. User loads saved workout
+2. Checks off completed exercises
+3. Progress bar updates in real-time
+4. Clicks "Update Progress"
+5. Frontend sends PUT to /api/workouts/:id
+6. Backend:
+   - Verifies token
+   - Confirms ownership
+   - Updates progress & completedExercises
+7. Sidebar shows updated progress
+8. If 100% → Shows completion alert
+```
 
-6. Asynchronous Programming
+---
 
-async/await syntax
-Waits for database queries to complete
-Prevents blocking the server
-Non-blocking I/O operations
+## Key Technical Concepts
 
-7. MVC Pattern (Model-View-Controller)
+### 1. JWT Authentication
+**What it is:** JSON Web Tokens - a secure way to authenticate users
 
-Model: Exercise.js (data structure)
-View: HTML/CSS (user interface)
-Controller: index.js (business logic)
+**How it works:**
+1. User logs in with email/password
+2. Server verifies credentials
+3. Server generates JWT containing user ID
+4. Token signed with secret key (JWT_SECRET)
+5. Token sent to frontend
+6. Frontend stores token in localStorage
+7. Frontend sends token in headers for protected routes
+8. Server verifies token signature and expiration
 
+**Token Structure:**
+```
+header.payload.signature
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.  ← Algorithm & type
+eyJ1c2VyIjp7ImlkIjoiNjc0YjEyMyJ9fQ.      ← User data (encrypted)
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c  ← Signature
+```
 
-Benefits of This Project
-When presenting, highlight these advantages:
-✅ Solves real problem: Workout decision fatigue
-✅ Full-stack: Frontend + Backend + Database
-✅ Deployed live: Anyone can access via URL
-✅ Random generation: Variety in every workout
-✅ Scalable: Easy to add more exercises
-✅ User-friendly: Simple, clean interface
-✅ Educational: Step-by-step instructions
-✅ Professional: Uses industry-standard tools
+**Security:**
+- Tokens expire after 10 hours
+- Signed with secret key (only server knows)
+- Cannot be tampered with
+- Stateless (no session storage needed)
 
-Presentation Guide
-Opening Statement
-"Spontaneity Fit is a full-stack workout generator that eliminates decision fatigue. Users select their focus area and available equipment, and the API instantly generates a randomized workout by querying a MongoDB database with over 30 exercises. Each exercise includes step-by-step instructions, difficulty levels, and targeted muscle groups."
-Technical Architecture
-"The frontend is built with HTML, CSS, and JavaScript for the user interface. The backend uses Node.js with Express.js to create a RESTful API. MongoDB stores all exercise data with Mongoose as the ODM (Object Data Modeling) library. The application is deployed on Render.com with MongoDB Atlas hosting the database in the cloud."
-Key Feature Explanation
-"The key feature is the random workout generation using MongoDB's aggregation pipeline. When a user selects their preferences, the API filters exercises using the $match operator based on focus area and equipment. Then, the $sample operator randomly selects 5 exercises from the filtered results, ensuring variety in every workout session."
-Code Flow Demonstration
+---
 
-Show the frontend interface
-Explain dropdown selections
-Open browser DevTools Network tab
-Generate a workout and show the API call
-Show the JSON response
-Explain how JavaScript creates the HTML elements
+### 2. Password Hashing with Crypto
+**Why:** Never store plain text passwords!
 
-Technical Challenges & Solutions
-Challenge 1: Cold Starts on Render
+**Process:**
+```javascript
+// Registration
+const salt = crypto.randomBytes(16).toString('hex');  // Random salt
+const hash = crypto.createHmac('sha256', salt)
+                   .update(password)
+                   .digest('hex');
+user.password = `${salt}:${hash}`;  // Store as "salt:hash"
 
-Problem: Free tier servers sleep after inactivity
-Solution: Implemented UptimeRobot to ping server every 5 minutes
+// Login Verification
+const [salt, storedHash] = user.password.split(':');
+const inputHash = crypto.createHmac('sha256', salt)
+                        .update(inputPassword)
+                        .digest('hex');
+if (inputHash === storedHash) {
+  // Password correct!
+}
+```
 
-Challenge 2: Database Seeding
+**Security Benefits:**
+- Each user has unique salt
+- Same password → different hash for different users
+- One-way encryption (cannot reverse)
+- Even if database leaked, passwords safe
 
-Problem: Empty database after deployment
-Solution: Created seed scripts to populate with exercises
+---
 
-Challenge 3: CORS Errors
+### 3. MongoDB References & Population
+**User-Workout Relationship:**
 
-Problem: Frontend couldn't communicate with backend
-Solution: Added CORS middleware to Express server
+```javascript
+// SavedWorkout references User
+user: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  required: true
+}
 
-Future Enhancements
+// Query with population (if needed)
+const workout = await SavedWorkout.findById(id).populate('user');
+// workout.user now contains full user document
+```
 
-User accounts and saved workouts
-Custom exercise creation
-Workout history tracking
-Timer functionality
-Video demonstrations
-Social sharing features
-Mobile app version
+---
 
+### 4. Progress Tracking System
+**How it works:**
 
-Common Questions & Answers
-Q: Why use MongoDB instead of SQL?
-A: MongoDB's flexible schema is perfect for exercises that may have varying attributes. It's also easier to add new fields without database migrations.
-Q: How does the random selection work?
-A: We use MongoDB's $sample aggregation operator which randomly selects documents from the collection, ensuring different workouts each time.
-Q: Why separate frontend and backend?
-A: This architecture allows the API to serve multiple clients (web, mobile app, etc.) and makes the code more maintainable.
-Q: Can this work offline?
-A: The frontend can be cached, but the API requires internet to query the database. A fully offline version would need local storage.
-Q: How scalable is this?
-A: Very scalable! MongoDB Atlas can handle millions of documents, and Render can auto-scale based on traffic.
+```javascript
+// Track which exercises completed
+completedExercises: [0, 2, 4]  // Indices of completed exercises
 
-Running the Project
-Locally:
-bash# Install dependencies
-npm install
+// Calculate percentage
+const total = exercises.length;  // 5 exercises
+const completed = completedExercises.length;  // 3 completed
+const progress = Math.round((completed / total) * 100);  // 60%
+```
 
-# Update .env with your MongoDB URI
-MONGO_URI=your_mongodb_connection_string
+**Frontend updates progress bar:**
+```javascript
+progressBar.style.width = `${progress}%`;
+progressText.innerText = `${progress}%`;
+```
 
-# Seed the database
-node seed-enhanced.js
+---
 
-# Start the server
-node index.js
+## Presentation Guide
 
-# Access at: http://localhost:3000
-Live Deployment:
+### Opening Statement
+"Spontaneity Fit is a full-stack workout generator with user authentication and workout tracking. Users create an account, generate randomized workouts based on their preferences, save workouts to their library, and track their progress as they complete exercises. The application uses JWT authentication for security, MongoDB for data persistence, and a RESTful API architecture that separates concerns between frontend and backend."
 
-Frontend + Backend: https://spontaneity-fit-api.onrender.com
-Database: MongoDB Atlas (cloud)
-Monitoring: UptimeRobot (keeps server awake)
+### Technical Architecture
+"The application has three main layers:
 
+**Frontend Layer:** HTML, CSS, and JavaScript handle user interface, authentication forms, workout display, and progress tracking. The UI dynamically switches between auth and app views based on login state.
 
-Project Statistics
+**Backend Layer:** Node.js with Express.js provides seven API endpoints - two for authentication (register/login), one public endpoint for generating workouts, and four protected endpoints for saving, loading, updating, and deleting workouts.
 
-Total Lines of Code: ~500+
-Total Exercises: 30+
-API Endpoints: 1 main endpoint
-Dependencies: 4 main packages
-Response Time: ~200-300ms average
-Deployment Platform: Render.com (free tier)
+**Data Layer:** MongoDB stores three collections - Users (account info with hashed passwords), Exercises (30+ exercises with instructions and GIFs), and SavedWorkouts (user's saved routines with progress tracking). JWT tokens authenticate requests to protected routes."
 
+### Key Features Demonstration
 
-Credits & Resources
-Technologies Used:
+**1. Authentication System:**
+- Show registration creating new account
+- Demonstrate token storage in localStorage
+- Login with existing account
+- Show JWT token in Network tab
+- Explain token includes user ID and expires in 10 hours
 
-Node.js - JavaScript runtime
-Express.js - Web framework
-MongoDB - NoSQL database
-Mongoose - MongoDB ODM
-Render - Deployment platform
-MongoDB Atlas - Cloud database
+**2. Workout Generation:**
+- Select preferences (legs + bodyweight)
+- Generate workout
+- Show API call in Network tab
+- Explain MongoDB aggregation ($match + $sample)
+- Show JSON response with 5 random exercises
 
-Learning Resources:
+**3. Saving & Tracking:**
+- Save generated workout
+- Show it appear in sidebar
+- Check off exercises
+- Progress bar updates in real-time
+- Click "Update Progress"
+- Show PUT request with token
+- Demonstrate persistence (refresh page)
 
-Express Documentation: https://expressjs.com/
-MongoDB Documentation: https://docs.mongodb.com/
-Mongoose Guide: https://mongoosejs.com/docs/guide.html
-Render Deployment: https://render.com/docs
+**4. Workout Library:**
+- Show multiple saved workouts
+- Different progress levels
+- Load previous workout
+- Progress restores
+- Delete workout functionality
 
+### Security Highlights
 
-Conclusion
-Spontaneity Fit demonstrates a complete understanding of full-stack web development, from frontend design to backend API development and database management. The project successfully implements RESTful principles, asynchronous programming, and cloud deployment, making it a comprehensive showcase of modern web development skills.
+"The application implements multiple security best practices:
+
+**Password Security:** Passwords are hashed using crypto with unique salts. Even if the database is compromised, passwords cannot be reverse-engineered.
+
+**JWT Authentication:** Protected routes require valid tokens. Tokens expire after 10 hours and are signed with a secret key stored in environment variables.
+
+**Route Protection:** The auth middleware verifies tokens and checks ownership before allowing users to access or modify their workouts.
+
+**Environment Variables:** Sensitive data like database credentials and JWT secrets are stored in .env files and never committed to GitHub."
+
+### Technical Challenges & Solutions
+
+**Challenge 1: Authentication State Management**
+- Problem: Frontend needs to track login state across page refreshes
+- Solution: Store JWT token in localStorage, check on page load
+
+**Challenge 2: Progress Tracking**
+- Problem: Need to track individual exercise completion
+- Solution: Store array of completed exercise indices, calculate percentage
+
+**Challenge 3: Workout Ownership**
+- Problem: Users should only access their own workouts
+- Solution: Store user reference in workout documents, verify ownership in middleware
+
+**Challenge 4: Real-time UI Updates**
+- Problem: Progress bar should update immediately when exercises checked
+- Solution: Event listeners on checkboxes trigger progress calculation and UI update
+
+### Future Enhancements
+
+1. **Social Features:** Share workouts with friends, community workout library
+2. **Advanced Analytics:** Workout history graphs, muscle group targeting statistics
+3. **Timer Integration:** Built-in rest timer between sets
+4. **Exercise Library:** User-created custom exercises
+5. **Mobile App:** React Native version for iOS/Android
+6. **Workout Plans:** Multi-week progressive programs
+7. **Video Demonstrations:** Full video tutorials instead of GIFs
+8. **Nutrition Tracking:** Meal planning integration
+
+---
+
+## Common Questions & Answers
+
+**Q: Why use JWT instead of sessions?**  
+A: JWTs are stateless, meaning the server doesn't need to store session data. This makes the API scalable and allows the same backend to serve multiple frontends (web, mobile, etc.) without session management complexity.
+
+**Q: How is the password hashing secure?**  
+A: Each password is hashed with a unique random salt, so even identical passwords result in different hashes. The HMAC SHA-256 algorithm is one-way, meaning you cannot reverse the hash to get the original password. Even if the database is compromised, attackers cannot determine user passwords.
+
+**Q: Can users access other users' workouts?**  
+A: No. The auth middleware extracts the user ID from the JWT token, and all workout queries filter by this user ID. Even if someone guesses another workout's ID, the ownership verification will deny access.
+
+**Q: What happens if the JWT token expires?**  
+A: After 10 hours, the token becomes invalid. The user must log in again to receive a new token. This is a security feature that prevents indefinite access if a token is stolen.
+
+**Q: Why store exercises separately from saved workouts?**  
+A: This follows database normalization principles. The Exercise collection is the "source of truth" for exercise data. When saving a workout, we embed a snapshot of the exercises, so updates to the Exercise collection don't affect previously saved workouts.
+
+---
+
+## Project Statistics
+
+- **Total Lines of Code:** ~1500+
+- **Total Exercises in Database:** 30+
+- **API Endpoints:** 7 total
+  - 2 authentication endpoints
+  - 1 public workout generation endpoint
+  - 4 protected workout management endpoints
+- **MongoDB Collections:** 3 (Users, Exercises, SavedWorkouts)
+- **Dependencies:** 5 main packages
+- **Authentication:** JWT with 10-hour expiration
+- **Password Security:** Crypto-based hashing with unique salts
+- **Response Time:** ~200-300ms average
+- **Deployment Platform:** Render.com (free tier)
+
+---
+
+## Credits & Technologies
+
+**Technologies Used:**
+- Node.js - JavaScript runtime
+- Express.js - Web framework
+- MongoDB - NoSQL database
+- Mongoose - MongoDB ODM
+- jsonwebtoken - JWT authentication
+- crypto (Node.js built-in) - Password hashing
+- Render - Deployment platform
+- MongoDB Atlas - Cloud database
+
+**Learning Resources:**
+- Express Documentation: https://expressjs.com/
+- MongoDB Documentation: https://docs.mongodb.com/
+- Mongoose Guide: https://mongoosejs.com/docs/guide.html
+- JWT Documentation: https://jwt.io/
+- Render Deployment: https://render.com/docs
+
+---
+
+## Conclusion
+
+Spontaneity Fit demonstrates a comprehensive understanding of modern full-stack web development, including:
+
+✅ **RESTful API Design** - Clear, organized endpoints following REST principles  
+✅ **Authentication & Authorization** - JWT-based secure user authentication  
+✅ **Database Design** - Well-structured schemas with proper relationships  
+✅ **Security Best Practices** - Password hashing, token verification, ownership checks  
+✅ **Frontend-Backend Integration** - Seamless communication between layers  
+✅ **State Management** - Proper handling of authentication and application state  
+✅ **User Experience** - Intuitive interface with real-time progress tracking  
+✅ **Cloud Deployment** - Production-ready application hosted on Render
+
+The project successfully implements a complete CRUD (Create, Read, Update, Delete) application with authentication, demonstrating the full spectrum of skills required for modern web development.
